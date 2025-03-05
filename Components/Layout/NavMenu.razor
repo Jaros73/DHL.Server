@@ -1,0 +1,55 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<ul class="nav-menu">
+    @if (user?.IsInRole("Dispecink") == true)
+    {
+        <li><NavLink class="nav-item" href="/dispecerska-sluzba"><i class="fas fa-hard-hat"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/vykony-mechanizace"><i class="fas fa-gears"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/kurzy"><i class="fas fa-truck-moving"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/mimoradne-kurzy"><i class="fas fa-road-barrier"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/zbytky"><i class="fas fa-box-open"></i></NavLink></li>
+    }
+
+    @if (user?.IsInRole("RegLogistika") == true)
+    {
+        <li><NavLink class="nav-item" href="/hlaseni-rl"><i class="fas fa-warehouse"></i></NavLink></li>
+    }
+
+    @if (user?.IsInRole("Admin") == true)
+    {
+        <li><NavLink class="nav-item" href="/zamestnanci"><i class="fas fa-user"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/ciselniky"><i class="fas fa-list-ol"></i></NavLink></li>
+    }
+</ul>
+
+<style>
+    .nav-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .nav-item {
+        font-size: 20px;
+        text-decoration: none;
+        color: #555;
+    }
+
+        .nav-item:hover {
+            color: #007bff;
+        }
+</style>
+
+@code {
+    private ClaimsPrincipal? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+    }
+}
