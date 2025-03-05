@@ -62,10 +62,9 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAntiforgery();
-
-app.MapStaticAssets();
-app.MapRazorComponents<App>()
+app.MapRazorComponents<DHL.Server.App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();

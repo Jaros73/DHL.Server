@@ -5,7 +5,6 @@
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
 
 <head>
     <script src="js/site.js"></script>
@@ -18,17 +17,6 @@
     {
         authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authState?.User;
-    }
-
-    private bool _titleSet = false;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && !_titleSet)
-        {
-            _titleSet = true;
-            await JSRuntime.InvokeVoidAsync("setTitle", "DHL");
-        }
     }
 }
 
