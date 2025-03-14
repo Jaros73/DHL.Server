@@ -6,9 +6,6 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 
-<head>
-    <script src="js/site.js"></script>
-</head>
 @code {
     private AuthenticationState? authState;
     private ClaimsPrincipal? user;
@@ -22,18 +19,23 @@
 
 @if (user?.Identity?.IsAuthenticated == true)
 {
-    <div class="layout">
-        <header>
-            <div class="logo">DHL</div>
+    <div class="layout-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-logo">DHL</div>
+            <hr class="sidebar-divider" />
             <NavMenu />
-            <aside>
+            <div class="user-menu-wrapper">
                 <UserMenu />
-            </aside>
-        </header>
+            </div>
+        </nav>
 
-        <main>
-            @Body
-        </main>
+        <!-- Main Content -->
+        <div class="main-content">
+            <main>
+                @Body
+            </main>
+        </div>
     </div>
 }
 else
@@ -41,3 +43,44 @@ else
     <RedirectToPortal />
 }
 
+<style>
+    .layout-container {
+        display: flex;
+        height: 100vh;
+    }
+
+    .sidebar {
+        width: 80px;
+        background-color: #f8f9fa;
+        padding: 1rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .sidebar-divider {
+        width: 80%;
+        height: 1px;
+        background-color: #ccc;
+        margin-bottom: 1rem;
+    }
+
+    .main-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-menu-wrapper {
+        margin-top: auto;
+        padding-bottom: 1rem;
+    }
+</style>

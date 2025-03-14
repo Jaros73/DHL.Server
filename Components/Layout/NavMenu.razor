@@ -6,25 +6,24 @@
 <ul class="nav-menu">
     @if (user?.IsInRole("Dispecink") == true || user?.IsInRole("Admin") == true)
     {
-        <li><NavLink class="nav-item" href="/dispecerska-sluzba"><i class="fas fa-hard-hat"></i></NavLink></li>
-        <li><NavLink class="nav-item" href="/vykony-mechanizace"><i class="fas fa-gears"></i></NavLink></li>
-        <li><NavLink class="nav-item" href="/kurzy"><i class="fas fa-truck-moving"></i></NavLink></li>
-        <li><NavLink class="nav-item" href="/mimoradne-kurzy"><i class="fas fa-road-barrier"></i></NavLink></li>
-        <li><NavLink class="nav-item" href="/zbytky"><i class="fas fa-box-open"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/dispecerska-sluzba" data-tooltip="Dispečerská služba"><i class="fas fa-hard-hat"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/vykony-mechanizace" data-tooltip="Výkony mechanizace"><i class="fas fa-gears"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/kurzy" data-tooltip="Kurzy"><i class="fas fa-truck-moving"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/mimoradne-kurzy" data-tooltip="Mimořádné kurzy"><i class="fas fa-road-barrier"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/zbytky" data-tooltip="Zbytky"><i class="fas fa-box-open"></i></NavLink></li>
     }
 
     @if (user?.IsInRole("RegLogistika") == true || user?.IsInRole("Admin") == true)
     {
-        <li><NavLink class="nav-item" href="/hlaseni-rl"><i class="fas fa-warehouse"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/hlaseni-rl" data-tooltip="Hlášení RL"><i class="fas fa-warehouse"></i></NavLink></li>
     }
 
     @if (user?.IsInRole("Admin") == true)
     {
-        <li><NavLink class="nav-item" href="/zamestnanci"><i class="fas fa-user"></i></NavLink></li>
-        <li><NavLink class="nav-item" href="/ciselniky"><i class="fas fa-list-ol"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/zamestnanci" data-tooltip="Zaměstnanci"><i class="fas fa-user"></i></NavLink></li>
+        <li><NavLink class="nav-item" href="/ciselniky" data-tooltip="Číselníky"><i class="fas fa-list-ol"></i></NavLink></li>
     }
 </ul>
-
 
 @code {
     private ClaimsPrincipal? user;
@@ -35,3 +34,41 @@
         user = authState.User;
     }
 }
+
+<style>
+    .nav-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .nav-item {
+        position: relative;
+        padding: 1rem;
+        font-size: 1.8rem;
+        color: #333;
+        text-decoration: none;
+    }
+
+        .nav-item:hover {
+            color: #007bff;
+        }
+
+            .nav-item:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                left: 100%;
+                top: 50%;
+                transform: translateY(-50%);
+                background-color: rgba(0, 0, 0, 0.75);
+                color: white;
+                padding: 5px 10px;
+                border-radius: 5px;
+                font-size: 0.9rem;
+                white-space: nowrap;
+            }
+</style>

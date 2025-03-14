@@ -4,14 +4,89 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 
-<div class="user-menu">
-    <div class="avatar">RR</div>
-    <button class="logout-btn" @onclick="Logout">Odhlásit</button>
+<div class="user-menu-container" @onclick:stopPropagation="true">
+    <div class="avatar" @onclick="ToggleLogout">RR</div>
+    @if (showLogout)
+    {
+        <div class="dropdown-menu">
+            <button class="logout-btn" @onclick="PerformLogout">Odhlásit</button>
+        </div>
+    }
 </div>
 
+
 @code {
-    private void Logout()
+    private bool showLogout = false;
+
+    private void ToggleLogout()
     {
+        showLogout = !showLogout;
+        StateHasChanged(); 
+    }
+
+    private void PerformLogout()
+    {
+        showLogout = false;
         Navigation.NavigateTo("https://portal.example.com/logout", forceLoad: true);
     }
 }
+
+<style>
+    .user-menu-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #007bff;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        padding: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+    }
+
+    .logout-btn {
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: color 0.3s;
+        padding: 0.5rem 1rem;
+    }
+
+        .logout-btn:hover {
+            color: #a71d2a;
+        }
+
+    .main-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        height: 100vh;
+    }
+</style>
