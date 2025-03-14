@@ -9,7 +9,7 @@ public class FakeAuthenticationStateProvider : AuthenticationStateProvider
         var identity = new ClaimsIdentity(new[]
         {
             new Claim(ClaimTypes.Name, "TestUser"),
-            new Claim(ClaimTypes.Role, "Dispecink") // Testovací role
+            new Claim(ClaimTypes.Role, "Admin") // Testovací role
         }, "Fake authentication");
 
         var user = new ClaimsPrincipal(identity);
