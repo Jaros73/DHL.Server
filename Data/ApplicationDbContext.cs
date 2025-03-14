@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
+using DHL.Server.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace DHL.Server.Data;
-
-public class ApplicationDbContext : DbContext
+namespace DHL.Server.Data
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    public class ApplicationDbContext : DbContext
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-   // public DbSet<User> Users { get; set; }
-   // public DbSet<Order> Orders { get; set; }
+        public DbSet<DispatchModel> Dispatches { get; set; }
+    }
 }
 

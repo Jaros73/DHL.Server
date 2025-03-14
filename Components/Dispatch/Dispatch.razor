@@ -1,0 +1,102 @@
+﻿@page "/dispecerska-sluzba"
+@using DHL.Server.Models
+@using DHL.Server.Services
+@inject DispatchService DispatchService
+@inject NavigationManager Navigation
+
+<h3>Dispečerská služba</h3>
+
+@if (Dispatches == null)
+{
+    <p>Načítání...</p>
+}
+else if (!Dispatches.Any()) // Pokud seznam je prázdný
+{
+    <p>Žádné záznamy k dispozici.</p>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Vytvořeno</th>
+                <th>DSPU</th>
+                <th>Datum</th>
+                <th>Typ</th>
+                <th>Klíč</th>
+                <th>Popis</th>
+                <th>Aktualizováno</th>
+                <th>Akce</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="8" style="text-align:center;">Zatím žádná data</td></tr>
+        </tbody>
+    </table>
+}
+else
+{
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Vytvořeno</th>
+                <th>DSPU</th>
+                <th>Datum</th>
+                <th>Typ</th>
+                <th>Klíč</th>
+                <th>Popis</th>
+                <th>Aktualizováno</th>
+                <th>Akce</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var dispatch in Dispatches)
+            {
+                <tr>
+                    <td>@dispatch.CreatedAt.ToString("g")</td>
+                    <td>@dispatch.LocationName</td>
+                    <td>@dispatch.UserTime.ToString("g")</td>
+                    <td>@dispatch.TypeEnumName</td>
+                    <td>@dispatch.KeyEnumName</td>
+                    <td>@(dispatch.Description ?? "-")</td>
+                    <td>@(dispatch.UpdatedAt.HasValue ? dispatch.UpdatedAt.Value.ToString("g") : "-")</td>
+                    <td>
+                        <button @onclick="() => ViewDispatch(dispatch.Id)">Detail</button>
+                        <button @onclick="() => DeleteDispatch(dispatch.Id)">Smazat</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<DispatchModel> Dispatches { get; set; } = new List<DispatchModel>(); // Inicializace prázdného seznamu
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Dispatches = await DispatchService.GetDispatchesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Chyba při načítání dispečerských záznamů: {ex.Message}");
+        }
+    }
+
+    private void ViewDispatch(int id)
+    {
+        Navigation.NavigateTo($"/dispatch/view/{id}");
+    }
+
+    private async Task DeleteDispatch(int id)
+    {
+        try
+        {
+            await DispatchService.DeleteDispatchAsync(id);
+            Dispatches = await DispatchService.GetDispatchesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Chyba při mazání záznamu: {ex.Message}");
+        }
+    }
+}

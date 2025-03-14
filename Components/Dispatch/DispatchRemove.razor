@@ -1,0 +1,51 @@
+﻿@using DHL.Server.Models
+@using DHL.Server.Services
+@inject DispatchService DispatchService
+
+<h3>Potvrzení smazání</h3>
+
+@if (Item == null)
+{
+    <p>Načítání...</p>
+}
+else
+{
+    <p>Opravdu chcete smazat záznam <strong>@Item?.LocationName</strong> k datu <strong>@Item?.UserTime.ToString("g")</strong>?</p>
+    <button @onclick="ConfirmDelete">Smazat</button>
+    <button @onclick="Cancel">Zrušit</button>
+}
+
+@code {
+    /// <summary>
+    /// Identifikátor záznamu pro smazání.
+    /// </summary>
+    [Parameter]
+    public int Id { get; set; }
+
+    private DispatchModel? Item;
+
+    /// <summary>
+    /// Načtení detailu záznamu při inicializaci.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        Item = await DispatchService.GetDispatchByIdAsync(Id);
+    }
+
+    /// <summary>
+    /// Potvrdí smazání záznamu.
+    /// </summary>
+    private async Task ConfirmDelete()
+    {
+        await DispatchService.DeleteDispatchAsync(Id);
+        // Přesměrování nebo aktualizace seznamu
+    }
+
+    /// <summary>
+    /// Zruší akci mazání.
+    /// </summary>
+    private void Cancel()
+    {
+        // Zavření dialogu nebo návrat
+    }
+}

@@ -1,0 +1,98 @@
+﻿@using DHL.Server.Models
+@using DHL.Server.Services
+@inject DispatchService DispatchService
+
+<h3>Filtr dispečerských záznamů</h3>
+
+@if (Meta == null)
+{
+    <p>Načítání...</p>
+}
+else
+{
+    <EditForm Model="Filter" OnValidSubmit="ApplyFilter">
+        <DataAnnotationsValidator />
+
+        <div>
+            <label>Datum vytvoření (od - do):</label>
+            <InputDate @bind-Value="Filter.CreatedAt.From" />
+            <InputDate @bind-Value="Filter.CreatedAt.To" />
+        </div>
+
+        <div>
+            <label>DSPU:</label>
+            <InputSelect multiple @bind-Value="Filter.LocationIds">
+                @foreach (var location in Meta.Locations)
+                {
+                    <option value="@location.Id">@location.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div>
+            <label>Typ:</label>
+            <InputSelect multiple @bind-Value="Filter.TypeEnumIds">
+                @foreach (var type in Meta.Types)
+                {
+                    <option value="@type.Id">@type.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+        <div>
+            <label>Klíč:</label>
+            <InputSelect multiple @bind-Value="Filter.KeyEnumIds">
+                @foreach (var key in Meta.Keys)
+                {
+                    <option value="@key.Id">@key.Name</option>
+                }
+            </InputSelect>
+        </div>
+
+        <button type="submit">Filtrovat</button>
+        <button type="button" @onclick="ResetFilter">Zrušit filtry</button>
+    </EditForm>
+}
+
+@code {
+    /// <summary>
+    /// Metadata pro filtrování (lokace, typy, klíče).
+    /// </summary>
+    private DispatchMeta? Meta;
+
+    /// <summary>
+    /// Objekt pro ukládání filtrů.
+    /// </summary>
+    private DispatchFilter Filter = new() { CreatedAt = new DispatchDateRange() };
+
+
+    /// <summary>
+    /// Načte metadata při inicializaci komponenty.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        Meta = await DispatchService.GetMetadataAsync();
+    }
+
+    /// <summary>
+    /// Použije zadané filtry a zavolá filtrovací službu.
+    /// </summary>
+    private async Task ApplyFilter()
+    {
+        await DispatchService.GetFilteredDispatchesAsync(Filter);
+    }
+
+    /// <summary>
+    /// Resetuje filtry na výchozí hodnoty.
+    /// </summary>
+    private void ResetFilter()
+    {
+        Filter = new DispatchFilter();
+    }
+
+    /// <summary>
+    /// Událost, která se spustí po změně filtru.
+    /// </summary>
+    [Parameter]
+    public EventCallback<DispatchFilter> OnFilterChanged { get; set; }
+}

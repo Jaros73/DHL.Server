@@ -1,16 +1,24 @@
 using System.Text;
 using DHL.Server.Components;
+using Microsoft.EntityFrameworkCore;
+using DHL.Server.Data;
 using DHL.Server.Models;
+using DHL.Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
 
 
+
+
 var builder = WebApplication.CreateBuilder(args);
 
+// Pøidání Controllerù (DÙLEŽITÉ PRO API)
+builder.Services.AddControllers();
+
 builder.Services.AddScoped<AuthenticationStateProvider, FakeAuthenticationStateProvider>();
-//builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider>();
+// builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider>();
 
 var authSettings = builder.Configuration.GetSection("Authentication").Get<AuthSettings>() ?? new AuthSettings();
 
@@ -19,7 +27,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         if (builder.Environment.IsDevelopment())
         {
-            // Vývojové prostøedí - testovací klíè a vypnutí validace Authority/Audience
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = false,
@@ -31,7 +38,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         }
         else
         {
-            // Produkèní prostøedí
             options.Authority = authSettings.Authority;
             options.Audience = authSettings.Audience;
             options.TokenValidationParameters = new TokenValidationParameters
@@ -46,10 +52,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Pøidání Razor Components
+// Pøidání Razor Components + MudBlazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddMudServices(); // Registrace MudBlazor
+builder.Services.AddMudServices();
+
+// Pøidání DispatchService + HttpClient
+builder.Services.AddScoped<DispatchService>();
+builder.Services.AddHttpClient<DispatchService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7250/"); 
+});
+
+// Registrace ApplicationDbContext s SQL Serverem
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -66,6 +83,11 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+// Mapování API Controllerù
+app.MapControllers();
+
+// Mapování Razor Components
 app.MapRazorComponents<DHL.Server.App>()
     .AddInteractiveServerRenderMode();
 
