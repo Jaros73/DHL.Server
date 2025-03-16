@@ -38,7 +38,7 @@ namespace DHL.Server.Models
         /// Identifikátor lokace (např. dispečerského střediska).
         /// </summary>
         [Required]
-        public string LocationId { get; set; } = "1"; 
+        public int LocationId { get; set; } = 1; 
 
         /// <summary>
         /// Název lokace (např. název dispečerského střediska).

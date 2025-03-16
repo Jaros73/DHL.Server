@@ -1,41 +1,30 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using DHL.Server.Models;
+using DHL.Server.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DHL.Server.Services;
 
 namespace DHL.Server.Controllers
 {
-    [ApiController]
     [Route("api/dispatch")]
+    [ApiController]
     public class DispatchController : ControllerBase
     {
-        private readonly DispatchService _dispatchService;
+        private readonly IDispatchService _dispatchService;
 
-        public DispatchController(DispatchService dispatchService)
+        public DispatchController(IDispatchService dispatchService)
         {
             _dispatchService = dispatchService;
         }
 
-        /// <summary>
-        /// Vrátí všechny dispečerské záznamy.
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<List<DispatchModel>>> GetDispatches()
         {
             var dispatches = await _dispatchService.GetDispatchesAsync();
-
-            if (dispatches == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(dispatches);
+            return dispatches ?? new List<DispatchModel>();
         }
 
-        /// <summary>
-        /// Vrátí dispečerský záznam podle ID.
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<DispatchModel>> GetDispatch(int id)
         {
@@ -46,9 +35,6 @@ namespace DHL.Server.Controllers
             return Ok(dispatch);
         }
 
-        /// <summary>
-        /// Filtrování záznamů podle kritérií.
-        /// </summary>
         [HttpPost("filter")]
         public async Task<ActionResult<List<DispatchModel>>> GetFilteredDispatches([FromBody] DispatchFilter filter)
         {
@@ -56,9 +42,6 @@ namespace DHL.Server.Controllers
             return Ok(dispatches);
         }
 
-        /// <summary>
-        /// Smazání záznamu podle ID.
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDispatch(int id)
         {

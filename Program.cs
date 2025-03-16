@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
+using DHL.Server.Interfaces;
 
 
 
@@ -58,11 +59,8 @@ builder.Services.AddRazorComponents()
 builder.Services.AddMudServices();
 
 // Pøidání DispatchService + HttpClient
-builder.Services.AddScoped<DispatchService>();
-builder.Services.AddHttpClient<DispatchService>(client =>
-{
-    client.BaseAddress = new Uri("https://localhost:7250/"); 
-});
+builder.Services.AddScoped<IDispatchService, DispatchService>();
+
 
 // Registrace ApplicationDbContext s SQL Serverem
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
