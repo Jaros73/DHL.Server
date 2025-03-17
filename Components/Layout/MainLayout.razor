@@ -32,9 +32,12 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <main>
-                @Body
-            </main>
+            <MudThemeProvider>
+            <MudDialogProvider /> 
+                <main>
+                    @Body
+                </main>
+            </MudThemeProvider>
         </div>
     </div>
 }
