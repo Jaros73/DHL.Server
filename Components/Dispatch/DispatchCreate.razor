@@ -1,8 +1,10 @@
 ﻿@using DHL.Server.Models
 @using DHL.Server.Services
 @inject DispatchService DispatchService
+@inject ISnackbar Snackbar
 
 <h3>Nový dispečerský záznam</h3>
+<MudButton OnClick="ShowSuccess">Zobrazit úspěšnou zprávu</MudButton>
 
 @if (Meta == null)
 {
@@ -58,6 +60,12 @@ else
 }
 
 @code {
+
+        private void ShowSuccess()
+    {
+        Snackbar.Add("Záznam byl úspěšně vytvořen!", Severity.Success);
+    }
+
     /// <summary>
     /// Metadata pro formulář (lokace, typy, klíče).
     /// </summary>

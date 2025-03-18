@@ -7,66 +7,33 @@
 
 <h3>Dispečerská služba</h3>
 
-@if (Dispatches == null)
-{
-    <p>Načítání...</p>
-}
-else if (!Dispatches.Any()) // Pokud seznam je prázdný
-{
-    <p>Žádné záznamy k dispozici.</p>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Vytvořeno</th>
-                <th>DSPU</th>
-                <th>Datum</th>
-                <th>Typ</th>
-                <th>Klíč</th>
-                <th>Popis</th>
-                <th>Aktualizováno</th>
-                <th>Akce</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td colspan="8" style="text-align:center;">Zatím žádná data</td></tr>
-        </tbody>
-    </table>
-}
-else
-{
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Vytvořeno</th>
-                <th>DSPU</th>
-                <th>Datum</th>
-                <th>Typ</th>
-                <th>Klíč</th>
-                <th>Popis</th>
-                <th>Aktualizováno</th>
-                <th>Akce</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var dispatch in Dispatches)
-            {
-                <tr>
-                    <td>@dispatch.CreatedAt.ToString("g")</td>
-                    <td>@dispatch.LocationName</td>
-                    <td>@dispatch.UserTime.ToString("g")</td>
-                    <td>@dispatch.TypeEnumName</td>
-                    <td>@dispatch.KeyEnumName</td>
-                    <td>@(dispatch.Description ?? "-")</td>
-                    <td>@(dispatch.UpdatedAt.HasValue ? dispatch.UpdatedAt.Value.ToString("g") : "-")</td>
-                    <td>
-                        <button @onclick="() => ViewDispatch(dispatch.Id)">Detail</button>
-                        <button @onclick="() => DeleteDispatch(dispatch.Id)">Smazat</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<MudTable Items="Dispatches" Dense="true" Hover="true" Bordered="true" Striped="true">
+    <HeaderContent>
+        <MudTh>Vytvořeno</MudTh>
+        <MudTh>DSPU</MudTh>
+        <MudTh>Datum</MudTh>
+        <MudTh>Typ</MudTh>
+        <MudTh>Klíč</MudTh>
+        <MudTh>Popis</MudTh>
+        <MudTh>Aktualizováno</MudTh>
+        <MudTh>Akce</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="dispatch">
+        <MudTd>@dispatch.CreatedAt.ToString("g")</MudTd>
+        <MudTd>@dispatch.LocationName</MudTd>
+        <MudTd>@dispatch.UserTime.ToString("g")</MudTd>
+        <MudTd>@dispatch.TypeEnumName</MudTd>
+        <MudTd>@dispatch.KeyEnumName</MudTd>
+        <MudTd>@(dispatch.Description ?? "-")</MudTd>
+        <MudTd>@(dispatch.UpdatedAt.HasValue ? dispatch.UpdatedAt.Value.ToString("g") : "-")</MudTd>
+        <MudTd>
+            <MudButton OnClick="@( () => ViewDispatch(dispatch.Id) )" Color="Color.Primary">Detail</MudButton>
+            <MudButton OnClick="@( () => DeleteDispatch(dispatch.Id) )" Color="Color.Error">Smazat</MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+
 
 @code {
     private List<DispatchModel> Dispatches { get; set; } = new List<DispatchModel>(); // Inicializace prázdného seznamu

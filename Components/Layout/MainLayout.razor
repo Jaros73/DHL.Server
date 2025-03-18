@@ -32,12 +32,13 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <MudThemeProvider>
-            <MudDialogProvider /> 
-                <main>
+            <MudThemeProvider />
+            <MudDialogProvider />
+            <MudSnackbarProvider />
+            <MudPopoverProvider />
+            <main>
                     @Body
                 </main>
-            </MudThemeProvider>
         </div>
     </div>
 }

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
 using DHL.Server.Interfaces;
+using MudBlazor;
 
 
 
@@ -56,7 +57,19 @@ builder.Services.AddAuthorization();
 // Pøidání Razor Components + MudBlazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddMudServices();
+
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = true;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 5000;
+    config.SnackbarConfiguration.HideTransitionDuration = 300;
+    config.SnackbarConfiguration.ShowTransitionDuration = 300;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled; // Možnosti: Text, Outlined, Filled
+});
+
 
 // Pøidání DispatchService + HttpClient
 builder.Services.AddScoped<IDispatchService, DispatchService>();
@@ -68,6 +81,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -79,7 +93,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseAntiforgery();
 
 // Mapování API Controllerù
