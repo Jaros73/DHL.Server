@@ -81,3 +81,7 @@ html, body {
     overflow: hidden;
 }
 
+.fa, .fas, .far, .fal, .fab {
+    font-size: 1.5rem !important; 
+    color: black !important;
+}

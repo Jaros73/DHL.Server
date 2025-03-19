@@ -6,6 +6,14 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 
+
+<HeadContent>
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="font-awesome/css/all.min.css" />
+</HeadContent>
+
+
 @code {
     private AuthenticationState? authState;
     private ClaimsPrincipal? user;

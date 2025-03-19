@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
 using DHL.Server.Interfaces;
 using MudBlazor;
+using Microsoft.Extensions.FileProviders;
 
 
 
@@ -82,8 +83,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 var app = builder.Build();
 
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font-awesome")),
+    RequestPath = "/font-awesome"
+});
+
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapBlazorHub();
 
 // Konfigurace pipeline
 if (!app.Environment.IsDevelopment())
