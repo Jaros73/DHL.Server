@@ -1,70 +1,88 @@
 ﻿@page "/dispecerska-sluzba"
-@using DHL.Server.Models
-@using DHL.Server.Services
 @using DHL.Server.Interfaces
+@using DHL.Server.Models
+@using DHL.Server.Models.Entities
+@using DHL.Server.Services
+@using MudBlazor
 @inject IDispatchService DispatchService
-@inject NavigationManager Navigation
+@inject IDialogService DialogService
 
-<h3>Dispečerská služba</h3>
+<MudPaper Class="pa-6" Style="width: 100%; Style="margin: 1rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <MudStack Spacing="2">
+        <!-- Nadpis -->
+        <MudText Typo="Typo.h5" Class="font-weight-bold">Dispečerská služba</MudText>
 
-<MudTable Items="Dispatches" Dense="true" Hover="true" Bordered="true" Striped="true">
-    <HeaderContent>
-        <MudTh>Vytvořeno</MudTh>
-        <MudTh>DSPU</MudTh>
-        <MudTh>Datum</MudTh>
-        <MudTh>Typ</MudTh>
-        <MudTh>Klíč</MudTh>
-        <MudTh>Popis</MudTh>
-        <MudTh>Aktualizováno</MudTh>
-        <MudTh>Akce</MudTh>
-    </HeaderContent>
-    <RowTemplate Context="dispatch">
-        <MudTd>@dispatch.CreatedAt.ToString("g")</MudTd>
-        <MudTd>@dispatch.LocationName</MudTd>
-        <MudTd>@dispatch.UserTime.ToString("g")</MudTd>
-        <MudTd>@dispatch.TypeEnumName</MudTd>
-        <MudTd>@dispatch.KeyEnumName</MudTd>
-        <MudTd>@(dispatch.Description ?? "-")</MudTd>
-        <MudTd>@(dispatch.UpdatedAt.HasValue ? dispatch.UpdatedAt.Value.ToString("g") : "-")</MudTd>
-        <MudTd>
-            <MudButton OnClick="@( () => ViewDispatch(dispatch.Id) )" Color="Color.Primary">Detail</MudButton>
-            <MudButton OnClick="@( () => DeleteDispatch(dispatch.Id) )" Color="Color.Error">Smazat</MudButton>
-        </MudTd>
-    </RowTemplate>
-</MudTable>
+        <!-- Toolbar: levá i pravá strana -->
+        <MudGrid>
+            <MudItem xs="12" md="8">
+                <MudStack Row Spacing="2">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog">+ Vytvořit</MudButton>
+                    <MudButton Variant="Variant.Text">FILTRY</MudButton>
+                    <MudButton Variant="Variant.Text">AKTUALIZOVAT</MudButton>
+                    <MudButton Variant="Variant.Text">EXPORT</MudButton>
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="searchText"
+                              Placeholder="Vyhledat..."
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Margin="Margin.Dense"
+                              Class="w-100" />
+            </MudItem>
+        </MudGrid>
+
+        <MudTable Items="@FilteredDispatches"
+                  Hover="true"
+                  Dense="true"
+                  Bordered="true"
+                  Elevation="0">
+            <HeaderContent>
+                <MudTh>Vytvořeno</MudTh>
+                <MudTh>DSPU</MudTh>
+                <MudTh>Datum ku</MudTh>
+                <MudTh>Typ</MudTh>
+                <MudTh>Klíč</MudTh>
+                <MudTh>Popis</MudTh>
+                <MudTh>Aktualizováno</MudTh>
+                <MudTh>Akce</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.CreatedAt.ToString("d. M. yyyy H:mm")</MudTd>
+                <MudTd>@context.LocationName</MudTd>
+                <MudTd>@context.UserTime.ToString("d. M. yyyy H:mm")</MudTd>
+                <MudTd>@context.TypeEnumName</MudTd>
+                <MudTd>@context.KeyEnumName</MudTd>
+                <MudTd>@context.Description</MudTd>
+                <MudTd>@context.UpdatedAt?.ToString("d. M. yyyy H:mm")</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" />
+                </MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText Color="Color.Error" Typo="Typo.subtitle2" Class="px-4 py-2">
+                    Zatím žádná data k dispozici.
+                </MudText>
+            </NoRecordsContent>
+        </MudTable>
+    </MudStack>
+</MudPaper>
 
 
 
 @code {
-    private List<DispatchModel> Dispatches { get; set; } = new List<DispatchModel>(); // Inicializace prázdného seznamu
+    private List<DispatchModelEntity> FilteredDispatches = new();
+    private string searchText = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            Dispatches = await DispatchService.GetDispatchesAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Chyba při načítání dispečerských záznamů: {ex.Message}");
-        }
+        FilteredDispatches = await DispatchService.GetDispatchesAsync();
     }
 
-    private void ViewDispatch(int id)
+    private void OpenCreateDialog()
     {
-        Navigation.NavigateTo($"/dispatch/view/{id}");
-    }
-
-    private async Task DeleteDispatch(int id)
-    {
-        try
-        {
-            await DispatchService.DeleteDispatchAsync(id);
-            Dispatches = await DispatchService.GetDispatchesAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Chyba při mazání záznamu: {ex.Message}");
-        }
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+       // DialogService.Show<CreateDispatchDialog>("Vytvořit záznam", options);
     }
 }

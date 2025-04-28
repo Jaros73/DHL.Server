@@ -1,4 +1,4 @@
-﻿namespace DHL.Server.Models
+﻿namespace DHL.Server.Models.DTO
 {
     /// <summary>
     /// Model obsahující metadata pro dispečerské záznamy.

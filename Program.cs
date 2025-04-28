@@ -11,6 +11,9 @@ using MudBlazor.Services;
 using DHL.Server.Interfaces;
 using MudBlazor;
 using Microsoft.Extensions.FileProviders;
+using AutoMapper;
+using DHL.Server.Models.Profiles;
+
 
 
 
@@ -54,6 +57,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+
 
 // Pøidání Razor Components + MudBlazor
 builder.Services.AddRazorComponents()
@@ -74,6 +80,8 @@ builder.Services.AddMudServices(config =>
 
 // Pøidání DispatchService + HttpClient
 builder.Services.AddScoped<IDispatchService, DispatchService>();
+// Pøidání Minimalizace css
+builder.Services.AddSingleton<CssMinifierService>();
 
 
 // Registrace ApplicationDbContext s SQL Serverem
@@ -81,6 +89,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
+
+// SpuštìníMinimalizace css
+using (var scope = app.Services.CreateScope())
+{
+    var cssMinifier = scope.ServiceProvider.GetRequiredService<CssMinifierService>();
+    CssMinifierService.MinifyCss("wwwroot/font-awesome/css/all.css", "wwwroot/font-awesome/css/all.min.css");
+}
 
 app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions

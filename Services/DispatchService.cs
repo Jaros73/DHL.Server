@@ -1,29 +1,29 @@
-﻿using DHL.Server.Models;
-using DHL.Server.Data;
+﻿using AutoMapper;
 using DHL.Server.Interfaces;
+using DHL.Server.Data;
+using DHL.Server.Models.Entities;
+using DHL.Server.Models.DTO;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 
 namespace DHL.Server.Services
 {
     public class DispatchService : IDispatchService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper; 
 
-        public DispatchService(ApplicationDbContext context)
+        public DispatchService(ApplicationDbContext context, IMapper mapper) 
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<List<DispatchModel>> GetDispatchesAsync()
+        public async Task<List<DispatchModelEntity>> GetDispatchesAsync()
         {
             return await _context.Dispatches.ToListAsync();
         }
 
-        public async Task CreateDispatchAsync(DispatchModel newDispatch)
+        public async Task CreateDispatchAsync(DispatchModelEntity newDispatch)
         {
             _context.Dispatches.Add(newDispatch);
             await _context.SaveChangesAsync();
@@ -41,20 +41,24 @@ namespace DHL.Server.Services
 
         public async Task<DispatchMeta> GetMetadataAsync()
         {
+            var locations = await _context.Locations.ToListAsync();
+            var types = await _context.DispatchTypes.ToListAsync();
+            var keys = await _context.DispatchKeys.ToListAsync();
+
             return new DispatchMeta
             {
-                Locations = await _context.Locations.ToListAsync(),
-                Types = await _context.DispatchTypes.ToListAsync(),
-                Keys = await _context.DispatchKeys.ToListAsync()
+                Locations = _mapper.Map<List<Location>>(locations),
+                Types = _mapper.Map<List<DispatchType>>(types),
+                Keys = _mapper.Map<List<DispatchKey>>(keys)
             };
         }
 
-        public async Task<DispatchModel?> GetDispatchByIdAsync(int id)
+        public async Task<DispatchModelEntity?> GetDispatchByIdAsync(int id)
         {
             return await _context.Dispatches.FirstOrDefaultAsync(d => d.Id == id);
         }
 
-        public async Task<List<DispatchModel>> GetFilteredDispatchesAsync(DispatchFilter filter)
+        public async Task<List<DispatchModelEntity>> GetFilteredDispatchesAsync(DispatchFilter filter)
         {
             var query = _context.Dispatches.AsQueryable();
 

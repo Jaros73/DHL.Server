@@ -6,13 +6,13 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 
-
 <HeadContent>
+    <link rel="stylesheet" href="css/site.css" />
+    <link rel="stylesheet" href="font-awesome/css/fontawesome.css" />
+    <link rel="stylesheet" href="font-awesome/css/solid.css" />
+    <link rel="stylesheet" href="font-awesome/css/brands.css" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="app.css" />
-    <link rel="stylesheet" href="font-awesome/css/all.min.css" />
 </HeadContent>
-
 
 @code {
     private AuthenticationState? authState;
@@ -44,9 +44,10 @@
             <MudDialogProvider />
             <MudSnackbarProvider />
             <MudPopoverProvider />
-            <main>
-                    @Body
-                </main>
+
+            <main class="content">
+                @Body
+            </main>
         </div>
     </div>
 }
@@ -56,11 +57,13 @@ else
 }
 
 <style>
+    /* Layout container s fixní sidebar šířkou */
     .layout-container {
         display: flex;
-        height: 100vh;
+        height: 100vh; /* Zajistí, že obsah bude vždy na celou výšku */
     }
 
+    /* Sidebar styl */
     .sidebar {
         width: 80px;
         background-color: #f8f9fa;
@@ -85,12 +88,26 @@ else
         margin-bottom: 1rem;
     }
 
+    /* Hlavní obsah (Body aplikace) */
     .main-content {
         flex-grow: 1;
         display: flex;
         flex-direction: column;
+        height: 100vh; /* Umožní plnou výšku */
+        overflow: hidden; /* Skryje nežádoucí scrollbary */
     }
 
+    /* Obsah aplikace (Blazor pages) */
+    .content {
+        width: 100%;
+        flex-grow: 1; /* Umožní roztáhnutí obsahu */
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        overflow: auto; /* Povolený scrollbar pouze pokud je nutný */
+    }
+
+    /* Uživatel v menu */
     .user-menu-wrapper {
         margin-top: auto;
         padding-bottom: 1rem;

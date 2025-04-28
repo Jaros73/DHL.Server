@@ -1,4 +1,6 @@
 ﻿@using DHL.Server.Models
+@using DHL.Server.Models.DTO
+@using DHL.Server.Models.Entities
 @using DHL.Server.Services
 @inject DispatchService DispatchService
 @inject ISnackbar Snackbar
@@ -74,7 +76,7 @@ else
     /// <summary>
     /// Nový záznam k vytvoření.
     /// </summary>
-    private DispatchModel NewDispatch = new();
+    private DispatchModelEntity NewDispatch = new();
 
     /// <summary>
     /// Inicializace komponenty, načtení metadat.

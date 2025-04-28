@@ -1,9 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using DHL.Server.Models;
 using DHL.Server.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DHL.Server.Services;
+using DHL.Server.Models.DTO;
+using DHL.Server.Models.Entities;
+using DHL.Server.Data;
+
+
 
 namespace DHL.Server.Controllers
 {
@@ -19,14 +23,14 @@ namespace DHL.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<DispatchModel>>> GetDispatches()
+        public async Task<ActionResult<List<DispatchModelEntity>>> GetDispatches()
         {
             var dispatches = await _dispatchService.GetDispatchesAsync();
-            return dispatches ?? new List<DispatchModel>();
+            return dispatches ?? new List<DispatchModelEntity>();
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<DispatchModel>> GetDispatch(int id)
+        public async Task<ActionResult<DispatchModelEntity>> GetDispatch(int id)
         {
             var dispatch = await _dispatchService.GetDispatchByIdAsync(id);
             if (dispatch == null)
@@ -36,7 +40,7 @@ namespace DHL.Server.Controllers
         }
 
         [HttpPost("filter")]
-        public async Task<ActionResult<List<DispatchModel>>> GetFilteredDispatches([FromBody] DispatchFilter filter)
+        public async Task<ActionResult<List<DispatchModelEntity>>> GetFilteredDispatches([FromBody] DispatchFilter filter)
         {
             var dispatches = await _dispatchService.GetFilteredDispatchesAsync(filter);
             return Ok(dispatches);
