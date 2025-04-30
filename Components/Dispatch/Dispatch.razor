@@ -1,42 +1,48 @@
-﻿@page "/dispecerska-sluzba"
+﻿@rendermode InteractiveServer
+@page "/dispecerska-sluzba"
 @using DHL.Server.Interfaces
-@using DHL.Server.Models
 @using DHL.Server.Models.Entities
-@using DHL.Server.Services
-@using MudBlazor
+@using DHL.Server.Components.Dispatch
 @inject IDispatchService DispatchService
 @inject IDialogService DialogService
+@inject IJSRuntime JS
 
-<MudPaper Class="pa-6" Style="width: 100%; Style="margin: 1rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+<MudContainer MaxWidth="MaxWidth.False" Class="mt-4 px-4">
     <MudStack Spacing="2">
         <!-- Nadpis -->
         <MudText Typo="Typo.h5" Class="font-weight-bold">Dispečerská služba</MudText>
 
-        <!-- Toolbar: levá i pravá strana -->
+        <!-- Toolbar -->
         <MudGrid>
-            <MudItem xs="12" md="8">
-                <MudStack Row Spacing="2">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog">+ Vytvořit</MudButton>
-                    <MudButton Variant="Variant.Text">FILTRY</MudButton>
-                    <MudButton Variant="Variant.Text">AKTUALIZOVAT</MudButton>
-                    <MudButton Variant="Variant.Text">EXPORT</MudButton>
+            <MudItem xs="12">         
+                <MudStack Row Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog">
+                        + Vytvořit
+                    </MudButton>
+
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudButton Variant="Variant.Text">Export</MudButton>
+                        <MudButton Variant="Variant.Text">Aktualizovat</MudButton>
+                        <MudButton Variant="Variant.Text">Filtry</MudButton>
+                        <MudTextField @bind-Value="searchText"
+                                      Placeholder="Vyhledat..."
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      Margin="Margin.Dense"
+                                      Class="ml-4" />
+                    </MudStack>
                 </MudStack>
-            </MudItem>
-            <MudItem xs="12" md="4">
-                <MudTextField @bind-Value="searchText"
-                              Placeholder="Vyhledat..."
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              Margin="Margin.Dense"
-                              Class="w-100" />
             </MudItem>
         </MudGrid>
 
-        <MudTable Items="@FilteredDispatches"
+        <!-- Tabulka -->
+        <MudTable Items="GetFiltered()"
                   Hover="true"
                   Dense="true"
                   Bordered="true"
-                  Elevation="0">
+                  Elevation="0"
+                  Class="mt-2">
             <HeaderContent>
                 <MudTh>Vytvořeno</MudTh>
                 <MudTh>DSPU</MudTh>
@@ -56,8 +62,17 @@
                 <MudTd>@context.Description</MudTd>
                 <MudTd>@context.UpdatedAt?.ToString("d. M. yyyy H:mm")</MudTd>
                 <MudTd>
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                   Color="Color.Default"
+                                   Size="Size.Small"
+                                   OnClick="@(() => CopyToClipboard(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Primary"
+                                   Size="Size.Small"
+                                   OnClick="@(() => OpenEditDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   Size="Size.Small" />
                 </MudTd>
             </RowTemplate>
             <NoRecordsContent>
@@ -67,9 +82,7 @@
             </NoRecordsContent>
         </MudTable>
     </MudStack>
-</MudPaper>
-
-
+</MudContainer>
 
 @code {
     private List<DispatchModelEntity> FilteredDispatches = new();
@@ -78,11 +91,88 @@
     protected override async Task OnInitializedAsync()
     {
         FilteredDispatches = await DispatchService.GetDispatchesAsync();
+
+        // TESTOVACÍ DATA (odstranit po nasazení!)
+        if (FilteredDispatches == null || !FilteredDispatches.Any())
+        {
+            FilteredDispatches = new List<DispatchModelEntity>
+            {
+                new() {
+                    CreatedAt = DateTime.Now.AddDays(-1),
+                    LocationName = "DSPU Brno",
+                    UserTime = DateTime.Now,
+                    TypeEnumName = "Nepravidelnosti HPS",
+                    KeyEnumName = "B D+1",
+                    Description = "Brumlík nenastoupil a pak si stěžoval na řidiče :-)",
+                    UpdatedAt = DateTime.Now
+                },
+                new() {
+                    CreatedAt = DateTime.Now.AddDays(-1),
+                    LocationName = "DSPU Praha",
+                    UserTime = DateTime.Now,
+                    TypeEnumName = "Nepravidelnosti ObPS",
+                    KeyEnumName = "B D+1",
+                    Description = "Brumlík",
+                    UpdatedAt = DateTime.Now
+                }
+            };
+        }
+    }
+
+    private IEnumerable<DispatchModelEntity> GetFiltered()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            return FilteredDispatches;
+
+        var lower = searchText.ToLower();
+        return FilteredDispatches.Where(d =>
+            (d.LocationName?.ToLower().Contains(lower) ?? false) ||
+            (d.TypeEnumName?.ToLower().Contains(lower) ?? false) ||
+            (d.KeyEnumName?.ToLower().Contains(lower) ?? false) ||
+            (d.Description?.ToLower().Contains(lower) ?? false)
+        );
+    }
+
+    private async Task CopyToClipboard(DispatchModelEntity entity)
+    {
+        var content = $"DSPU: {entity.LocationName}\n" +
+                      $"Typ: {entity.TypeEnumName}\n" +
+                      $"Klíč: {entity.KeyEnumName}\n" +
+                      $"Popis: {entity.Description}";
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", content);
     }
 
     private void OpenCreateDialog()
     {
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-       // DialogService.Show<CreateDispatchDialog>("Vytvořit záznam", options);
+        // DialogService.Show<CreateDispatchDialog>("Vytvořit záznam", options);
     }
+
+    private async Task OpenEditDialog(DispatchModelEntity entity)
+    {
+        Console.WriteLine("Kliknuto na úpravu");
+
+        var parameters = new DialogParameters { ["Dispatch"] = entity };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialogRef = await DialogService.ShowAsync<EditDispatchDialog>("Upravit záznam", parameters, options);
+        var result = await dialogRef.Result;
+
+        if (result is not null && !result.Canceled && result.Data is DispatchModelEntity { } updated)
+        {
+            var original = FilteredDispatches.FirstOrDefault(x => x == entity);
+            if (original is not null)
+            {
+                original.LocationName = updated.LocationName;
+                original.UserTime = updated.UserTime;
+                original.TypeEnumName = updated.TypeEnumName;
+                original.KeyEnumName = updated.KeyEnumName;
+                original.Description = updated.Description;
+                original.UpdatedAt = updated.UpdatedAt;
+            }
+
+            StateHasChanged();
+        }
+    }
+
 }

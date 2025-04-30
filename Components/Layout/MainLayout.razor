@@ -14,6 +14,12 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 </HeadContent>
 
+<!-- Poskytovatelé MUSÍ být mimo podmínku -->
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
 @code {
     private AuthenticationState? authState;
     private ClaimsPrincipal? user;
@@ -40,11 +46,6 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <MudThemeProvider />
-            <MudDialogProvider />
-            <MudSnackbarProvider />
-            <MudPopoverProvider />
-
             <main class="content">
                 @Body
             </main>
@@ -57,13 +58,11 @@ else
 }
 
 <style>
-    /* Layout container s fixní sidebar šířkou */
     .layout-container {
         display: flex;
-        height: 100vh; /* Zajistí, že obsah bude vždy na celou výšku */
+        height: 100vh;
     }
 
-    /* Sidebar styl */
     .sidebar {
         width: 80px;
         background-color: #f8f9fa;
@@ -88,26 +87,23 @@ else
         margin-bottom: 1rem;
     }
 
-    /* Hlavní obsah (Body aplikace) */
     .main-content {
         flex-grow: 1;
         display: flex;
         flex-direction: column;
-        height: 100vh; /* Umožní plnou výšku */
-        overflow: hidden; /* Skryje nežádoucí scrollbary */
+        height: 100vh;
+        overflow: hidden;
     }
 
-    /* Obsah aplikace (Blazor pages) */
     .content {
         width: 100%;
-        flex-grow: 1; /* Umožní roztáhnutí obsahu */
+        flex-grow: 1;
         display: flex;
         flex-direction: column;
         padding: 1rem;
-        overflow: auto; /* Povolený scrollbar pouze pokud je nutný */
+        overflow: auto;
     }
 
-    /* Uživatel v menu */
     .user-menu-wrapper {
         margin-top: auto;
         padding-bottom: 1rem;
