@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using DHL.Server.Interfaces;
 using DHL.Server.Data;
 using DHL.Server.Models.Entities;
 using DHL.Server.Models.DTO;
 using Microsoft.EntityFrameworkCore;
+using DHL.Server.Features.Dispatching.Interfaces;
 
-namespace DHL.Server.Services
+namespace DHL.Server.Features.Dispatching.Services
 {
     public class DispatchService : IDispatchService
     {

@@ -2,11 +2,10 @@
 using DHL.Server.Models.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DHL.Server.Interfaces;
 using DHL.Server.Data;
 
 
-namespace DHL.Server.Interfaces
+namespace DHL.Server.Features.Dispatching.Interfaces
 {
     public interface IDispatchService
     {

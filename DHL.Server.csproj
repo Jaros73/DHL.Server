@@ -31,7 +31,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Components\Layout\" />
 	  <Folder Include="Data\Seed\" />
+	  <Folder Include="Interfaces\" />
 	</ItemGroup>
 </Project>
