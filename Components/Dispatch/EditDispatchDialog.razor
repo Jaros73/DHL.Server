@@ -1,6 +1,10 @@
 ﻿@using DHL.Server.Models.Entities
 @using MudBlazor
 @inject IDialogReference DialogReference
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+
 
 <MudDialog>
     <DialogContent>
@@ -8,7 +12,7 @@
 
         <MudStack Spacing="2">
             <MudTextField T="string" Label="DSPU" @bind-Value="model.LocationName" Required="true" />
-            <MudDatePicker T="DateTime?"
+            <MudDatePicker TDate="DateTime?"
                            Date="model.UserTime"
                            DateChanged="@(val => model.UserTime = val ?? DateTime.Now)"
                            Label="Datum ku"

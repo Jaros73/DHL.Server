@@ -1,5 +1,5 @@
-﻿@page "/"
-@namespace DHL.Server.Pages
+﻿@namespace DHL.Server.Pages
+@using Microsoft.AspNetCore.Components.Web
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     Layout = null;
@@ -23,8 +23,35 @@
 
     <script src="_framework/blazor.server.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="/_framework/aspnetcore-browser-refresh.js"></script>
+
+    <script>
+        window.copyTextToClipboard = async function (text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                } catch {
+                    fallbackClipboardCopy(text);
+                }
+            } else {
+                fallbackClipboardCopy(text);
+            }
+        };
+
+        function fallbackClipboardCopy(text) {
+            try {
+                const textarea = document.createElement("textarea");
+                textarea.value = text;
+                textarea.style.position = "fixed";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textarea);
+            } catch (e) {
+                console.error("Clipboard fallback failed:", e);
+            }
+        }
+    </script>
 </body>
 </html>
-
-@{
-}

@@ -1,11 +1,13 @@
-﻿@rendermode InteractiveServer
-@page "/dispecerska-sluzba"
+﻿@page "/dispecerska-sluzba"
 @using DHL.Server.Interfaces
 @using DHL.Server.Models.Entities
 @using DHL.Server.Components.Dispatch
 @inject IDispatchService DispatchService
 @inject IDialogService DialogService
 @inject IJSRuntime JS
+
+<MudButton OnClick="@(() => Console.WriteLine("Klik!"))">Test klik</MudButton>
+
 
 <MudContainer MaxWidth="MaxWidth.False" Class="mt-4 px-4">
     <MudStack Spacing="2">
@@ -139,7 +141,14 @@
                       $"Typ: {entity.TypeEnumName}\n" +
                       $"Klíč: {entity.KeyEnumName}\n" +
                       $"Popis: {entity.Description}";
-        await JS.InvokeVoidAsync("navigator.clipboard.writeText", content);
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", content);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Chyba při kopírování do schránky: {ex.Message}");
+        }
     }
 
     private void OpenCreateDialog()
