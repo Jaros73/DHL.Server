@@ -1,16 +1,27 @@
-﻿<CascadingAuthenticationState>
+﻿
+@rendermode InteractiveServer
+@namespace DHL.Server
+
+<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
             <PageTitle>DHL</PageTitle>
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Shared.MainLayout)" />
         </Found>
         <NotFound>
             <PageTitle>Stránka nenalezena - DHL</PageTitle>
-            <LayoutView Layout="@typeof(MainLayout)">
+            <LayoutView Layout="@typeof(Shared.MainLayout)">
                 <p>Stránka nenalezena.</p>
             </LayoutView>
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
 
-<HeadOutlet />
+<HeadOutlet @rendermode="InteractiveServer" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("App initialized ANO ANO");
+    }
+}

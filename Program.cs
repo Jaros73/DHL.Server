@@ -1,4 +1,6 @@
 using System.Text;
+using System.IO;
+using DHL.Server;
 using DHL.Server.Components;
 using Microsoft.EntityFrameworkCore;
 using DHL.Server.Data;
@@ -6,6 +8,7 @@ using DHL.Server.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Components;
 using MudBlazor.Services;
 using MudBlazor;
 using Microsoft.Extensions.FileProviders;
@@ -13,36 +16,34 @@ using AutoMapper;
 using DHL.Server.Models.Profiles;
 using DHL.Server.Features.Dispatching.Services;
 using DHL.Server.Features.Dispatching.Interfaces;
+using DHL.Server.Authentication;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Builder;
 
-
-
-
+Environment.SetEnvironmentVariable("DOTNET_WATCH", "false");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Pøidání Controllerù (DÙLEŽITÉ PRO API)
-builder.Services.AddControllers();
+// --------------------
+//  SLUŽBY
+// --------------------
 
-builder.Services.AddScoped<AuthenticationStateProvider, FakeAuthenticationStateProvider>();
-// builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider>();
+builder.Services.AddControllers();
 
 var authSettings = builder.Configuration.GetSection("Authentication").Get<AuthSettings>() ?? new AuthSettings();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        if (builder.Environment.IsDevelopment())
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("my-super-secret-key")) // Vývojový klíè
-            };
-        }
-        else
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddAuthentication("Fake")
+        .AddScheme<AuthenticationSchemeOptions, FakeAuthHandler>("Fake", options => { });
+
+    builder.Services.AddScoped<AuthenticationStateProvider, FakeAuthenticationStateProvider>();
+    builder.Services.AddAuthorizationCore();
+}
+else
+{
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
         {
             options.Authority = authSettings.Authority;
             options.Audience = authSettings.Audience;
@@ -53,15 +54,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true
             };
-        }
-    });
+        });
 
-builder.Services.AddAuthorization();
+    builder.Services.AddAuthorization();
+}
+
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-
-
-// Pøidání Razor Components + MudBlazor
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -74,57 +73,70 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.VisibleStateDuration = 5000;
     config.SnackbarConfiguration.HideTransitionDuration = 300;
     config.SnackbarConfiguration.ShowTransitionDuration = 300;
-    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled; // Možnosti: Text, Outlined, Filled
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
 
-
-// Pøidání DispatchService + HttpClient
 builder.Services.AddScoped<IDispatchService, DispatchService>();
-// Pøidání Minimalizace css
 builder.Services.AddSingleton<CssMinifierService>();
 
-
-// Registrace ApplicationDbContext s SQL Serverem
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// --------------------
+//  BUILD APLIKACE
+// --------------------
+
 var app = builder.Build();
 
-// SpuštìníMinimalizace css
+// CSS minifikace (jen jednou pøi startu)
 using (var scope = app.Services.CreateScope())
 {
     var cssMinifier = scope.ServiceProvider.GetRequiredService<CssMinifierService>();
     CssMinifierService.MinifyCss("wwwroot/font-awesome/css/all.css", "wwwroot/font-awesome/css/all.min.css");
 }
 
-app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "font-awesome")),
-    RequestPath = "/font-awesome"
-});
+// --------------------
+// MIDDLEWARE
+// --------------------
 
-app.UseRouting();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapBlazorHub();
-
-// Konfigurace pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts(); // HSTS (pouze produkce)
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles(); // jen jednou!
+
+var webSocketOptions = new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromMinutes(2)
+};
+
+app.UseWebSockets(webSocketOptions);
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 
-// Mapování API Controllerù
-app.MapControllers();
+// --------------------
+// MAPOVÁNÍ
+// --------------------
 
-// Mapování Razor Components
-app.MapRazorComponents<DHL.Server.App>()
+
+app.MapControllers();
+app.MapBlazorHub();
+
+
+app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+
+app.Use((context, next) =>
+{
+    context.Response.Headers.Remove("blazor-enhanced-nav"); // vypne pøidávání speciálních hlavièek
+    return next();
+});
+
 
 app.Run();

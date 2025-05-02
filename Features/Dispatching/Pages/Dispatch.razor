@@ -1,13 +1,17 @@
 ﻿@page "/dispecerska-sluzba"
-@using DHL.Server.Components.Dispatch
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@attribute [Authorize]
 @using DHL.Server.Features.Dispatching.Interfaces
-@using DHL.Server.Interfaces
 @using DHL.Server.Models.Entities
 @inject IDispatchService DispatchService
 @inject IDialogService DialogService
 @inject IJSRuntime JS
 
-<MudButton OnClick="@(() => Console.WriteLine("Klik!"))">Test klik</MudButton>
+<MudButton OnClick="TestClick">Test klik</MudButton>
+<MudText Typo="Typo.subtitle2" Color="Color.Primary">Interaktivní test</MudText>
+
 
 
 <MudContainer MaxWidth="MaxWidth.False" Class="mt-4 px-4">
@@ -88,6 +92,12 @@
 </MudContainer>
 
 @code {
+
+        private void TestClick()
+    {
+        Console.WriteLine("Klik!");
+    }
+
     private List<DispatchModelEntity> FilteredDispatches = new();
     private string searchText = string.Empty;
 

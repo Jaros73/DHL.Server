@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DHL.Server.Services;
+using DHL.Server.Features.Dispatching.Services;
 using DHL.Server.Models.DTO;
 using DHL.Server.Models.Entities;
 using DHL.Server.Data;
