@@ -1,0 +1,27 @@
+﻿@page "/"
+@namespace DHL.Server.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <title>DHL Blazor Server</title>
+    <base href="~/" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="font-awesome/css/fontawesome.css" />
+    <link rel="stylesheet" href="font-awesome/css/solid.css" />
+    <link rel="stylesheet" href="font-awesome/css/brands.css" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+</head>
+<body>
+    <app>
+        <component type="typeof(App)" render-mode="Server" />
+    </app>
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</body>
+</html>

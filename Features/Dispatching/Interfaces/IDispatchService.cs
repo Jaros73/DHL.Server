@@ -9,7 +9,7 @@ namespace DHL.Server.Features.Dispatching.Interfaces
 {
     public interface IDispatchService
     {
-        Task<List<DispatchModelEntity>> GetDispatchesAsync();
+        Task<List<DispatchModelEntity>> GetDispatchesAsync(CancellationToken cancellationToken = default);
         Task<DispatchModelEntity?> GetDispatchByIdAsync(int id);
         Task<List<DispatchModelEntity>> GetFilteredDispatchesAsync(DispatchFilter filter);
         Task CreateDispatchAsync(DispatchModelEntity newDispatch);

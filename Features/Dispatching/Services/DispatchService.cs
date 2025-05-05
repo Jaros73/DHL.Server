@@ -18,11 +18,6 @@ namespace DHL.Server.Features.Dispatching.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<List<DispatchModelEntity>> GetDispatchesAsync()
-        {
-            return await _context.Dispatches.ToListAsync();
-        }
-
         public async Task CreateDispatchAsync(DispatchModelEntity newDispatch)
         {
             _context.Dispatches.Add(newDispatch);
@@ -82,5 +77,11 @@ namespace DHL.Server.Features.Dispatching.Services
 
             return await query.ToListAsync();
         }
+
+        public async Task<List<DispatchModelEntity>> GetDispatchesAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Dispatches.ToListAsync(cancellationToken);
+        }
+
     }
 }

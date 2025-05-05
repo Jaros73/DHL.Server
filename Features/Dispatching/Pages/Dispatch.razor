@@ -1,5 +1,4 @@
 ﻿@page "/dispecerska-sluzba"
-@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @attribute [Authorize]
@@ -9,19 +8,13 @@
 @inject IDialogService DialogService
 @inject IJSRuntime JS
 
-<MudButton OnClick="TestClick">Test klik</MudButton>
-<MudText Typo="Typo.subtitle2" Color="Color.Primary">Interaktivní test</MudText>
-
-
 
 <MudContainer MaxWidth="MaxWidth.False" Class="mt-4 px-4">
     <MudStack Spacing="2">
-        <!-- Nadpis -->
         <MudText Typo="Typo.h5" Class="font-weight-bold">Dispečerská služba</MudText>
 
-        <!-- Toolbar -->
         <MudGrid>
-            <MudItem xs="12">         
+            <MudItem xs="12">
                 <MudStack Row Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
 
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenCreateDialog">
@@ -43,7 +36,6 @@
             </MudItem>
         </MudGrid>
 
-        <!-- Tabulka -->
         <MudTable Items="GetFiltered()"
                   Hover="true"
                   Dense="true"
@@ -69,17 +61,9 @@
                 <MudTd>@context.Description</MudTd>
                 <MudTd>@context.UpdatedAt?.ToString("d. M. yyyy H:mm")</MudTd>
                 <MudTd>
-                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
-                                   Color="Color.Default"
-                                   Size="Size.Small"
-                                   OnClick="@(() => CopyToClipboard(context))" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Color="Color.Primary"
-                                   Size="Size.Small"
-                                   OnClick="@(() => OpenEditDialog(context))" />
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                   Color="Color.Error"
-                                   Size="Size.Small" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Color="Color.Default" Size="Size.Small" OnClick="@(() => CopyToClipboard(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenEditDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" />
                 </MudTd>
             </RowTemplate>
             <NoRecordsContent>
@@ -92,8 +76,11 @@
 </MudContainer>
 
 @code {
+    @implements IDisposable
 
-        private void TestClick()
+    private CancellationTokenSource _cts = new();
+
+    private void TestClick()
     {
         Console.WriteLine("Klik!");
     }
@@ -103,9 +90,20 @@
 
     protected override async Task OnInitializedAsync()
     {
-        FilteredDispatches = await DispatchService.GetDispatchesAsync();
+        try
+        {
+            FilteredDispatches = await DispatchService.GetDispatchesAsync(_cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("Načítání zrušeno.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Chyba při načítání: " + ex.Message);
+            FilteredDispatches = new();
+        }
 
-        // TESTOVACÍ DATA (odstranit po nasazení!)
         if (FilteredDispatches == null || !FilteredDispatches.Any())
         {
             FilteredDispatches = new List<DispatchModelEntity>
@@ -131,6 +129,8 @@
             };
         }
     }
+
+    public void Dispose() => _cts.Cancel();
 
     private IEnumerable<DispatchModelEntity> GetFiltered()
     {
@@ -170,15 +170,21 @@
 
     private async Task OpenEditDialog(DispatchModelEntity entity)
     {
-        Console.WriteLine("Kliknuto na úpravu");
-
         var parameters = new DialogParameters { ["Dispatch"] = entity };
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var options = new DialogOptions
+            {
+                CloseButton = true,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                NoHeader = false,
+                Position = DialogPosition.Center
+            };
 
         var dialogRef = await DialogService.ShowAsync<EditDispatchDialog>("Upravit záznam", parameters, options);
         var result = await dialogRef.Result;
 
-        if (result is not null && !result.Canceled && result.Data is DispatchModelEntity { } updated)
+        if (result is not null && !result.Canceled && result.Data is DispatchModelEntity updated)
         {
             var original = FilteredDispatches.FirstOrDefault(x => x == entity);
             if (original is not null)

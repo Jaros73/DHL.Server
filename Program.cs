@@ -3,6 +3,7 @@ using System.IO;
 using DHL.Server;
 using DHL.Server.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Components.Web;
 using DHL.Server.Data;
 using DHL.Server.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,10 +24,6 @@ using Microsoft.AspNetCore.Builder;
 Environment.SetEnvironmentVariable("DOTNET_WATCH", "false");
 
 var builder = WebApplication.CreateBuilder(args);
-
-// --------------------
-//  SLUŽBY
-// --------------------
 
 builder.Services.AddControllers();
 
@@ -61,8 +58,8 @@ else
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor();
 
 builder.Services.AddMudServices(config =>
 {
@@ -82,22 +79,20 @@ builder.Services.AddSingleton<CssMinifierService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// --------------------
-//  BUILD APLIKACE
-// --------------------
-
 var app = builder.Build();
 
-// CSS minifikace (jen jednou pøi startu)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DbInitializer.InitializeAsync(db);
+}
+
+
 using (var scope = app.Services.CreateScope())
 {
     var cssMinifier = scope.ServiceProvider.GetRequiredService<CssMinifierService>();
     CssMinifierService.MinifyCss("wwwroot/font-awesome/css/all.css", "wwwroot/font-awesome/css/all.min.css");
 }
-
-// --------------------
-// MIDDLEWARE
-// --------------------
 
 if (!app.Environment.IsDevelopment())
 {
@@ -106,7 +101,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); // jen jednou!
+app.UseStaticFiles();
 
 var webSocketOptions = new WebSocketOptions
 {
@@ -118,25 +113,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
-
-// --------------------
-// MAPOVÁNÍ
-// --------------------
-
-
 app.MapControllers();
 app.MapBlazorHub();
-
-
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-
-
-app.Use((context, next) =>
-{
-    context.Response.Headers.Remove("blazor-enhanced-nav"); // vypne pøidávání speciálních hlavièek
-    return next();
-});
-
+app.MapFallbackToPage("/_Host");
 
 app.Run();

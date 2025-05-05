@@ -1,5 +1,4 @@
 ﻿@page "/"
-@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components
 @namespace DHL.Server.Components.Pages
 
@@ -8,8 +7,6 @@
     <div class="logo">DHL</div>
     <h1>Vítejte</h1>
     <p>Dočasná domovská obrazovka.</p>
-    <MudButton OnClick="TestClick">Test klik</MudButton>
-    <p>@_message</p>
 </div>
 
 <style>
@@ -37,15 +34,5 @@
     }
 </style>
 
-@code {
-
-    private string _message = "Načteno.";
-
-    private void TestClick()
-    {
-        _message = "Klik funguje!";
-        Console.WriteLine("Klik!");
-    }
-}
 
 

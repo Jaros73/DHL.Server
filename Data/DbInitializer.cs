@@ -9,10 +9,8 @@ namespace DHL.Server.Data
     {
         public static async Task InitializeAsync(ApplicationDbContext context)
         {
-            // Zajistí, že je databáze fyzicky vytvořena
             await context.Database.EnsureCreatedAsync();
 
-            // Lokace
             if (!await context.Locations.AnyAsync())
             {
                 var locations = await LoadLocationsAsync();
@@ -20,16 +18,14 @@ namespace DHL.Server.Data
                 await context.SaveChangesAsync();
             }
 
-            // Typy operací
-            if (!await context.DispatchTypes.AnyAsync())
+            if (!await context.DispatchTypes.AnyAsync() && File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "dispatchtypes.csv")))
             {
                 var types = await LoadDispatchTypesAsync();
                 await context.DispatchTypes.AddRangeAsync(types);
                 await context.SaveChangesAsync();
             }
 
-            // Klíče operací
-            if (!await context.DispatchKeys.AnyAsync())
+            if (!await context.DispatchKeys.AnyAsync() && File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "dispatchkeys.csv")))
             {
                 var keys = await LoadDispatchKeysAsync();
                 await context.DispatchKeys.AddRangeAsync(keys);
@@ -37,18 +33,39 @@ namespace DHL.Server.Data
             }
         }
 
+
         private static async Task<List<LocationEntity>> LoadLocationsAsync()
         {
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "locations.csv");
             var lines = await File.ReadAllLinesAsync(filePath);
-            return lines.Skip(1) // Přeskočí hlavičku
-                .Select(line => line.Split(','))
-                .Select(parts => new LocationEntity
+
+            var result = new List<LocationEntity>();
+
+            foreach (var line in lines)
+            {
+                var parts = line.Split(';');
+
+                if (parts.Length != 3 || string.IsNullOrWhiteSpace(parts[2]))
                 {
-                    Id = int.Parse(parts[0], CultureInfo.InvariantCulture),
-                    Name = parts[1]
-                })
-                .ToList();
+                    Console.WriteLine($"⚠️ Neplatný řádek: '{line}'");
+                    continue;
+                }
+
+                if (!int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out var psc))
+                {
+                    Console.WriteLine($"⚠️ Neplatné PSČ: '{parts[2]}' v řádku: '{line}'");
+                    continue;
+                }
+
+                result.Add(new LocationEntity
+                {
+                    Name = parts[0],
+                    PostOfficeType = parts[1],
+                    Psc = psc
+                });
+            }
+
+            return result;
         }
 
         private static async Task<List<DispatchTypeEntity>> LoadDispatchTypesAsync()
