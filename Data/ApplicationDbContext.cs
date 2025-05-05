@@ -72,6 +72,9 @@ namespace DHL.Server.Data
         /// </summary>
         public DbSet<LocationMachine> LocationMachines { get; set; }
 
+        public DbSet<RegionalReportEntity> RegionalReports { get; set; }
+        public DbSet<AttachmentEntity> Attachments { get; set; }
+
         /// <summary>
         /// Definuje vztahy mezi entitami.
         /// </summary>
@@ -120,6 +123,12 @@ namespace DHL.Server.Data
                 .HasOne<Machine>()
                 .WithMany()
                 .HasForeignKey(lm => lm.MachineValue);
+
+            modelBuilder.Entity<AttachmentEntity>()
+                .HasOne(a => a.RegionalReport)
+                .WithMany(r => r.Attachments)
+                .HasForeignKey(a => a.RegionalReportId);
+
         }
     }
 }
