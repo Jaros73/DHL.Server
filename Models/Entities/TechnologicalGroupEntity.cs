@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DHL.Server.Models.DTO
+namespace DHL.Server.Models.Entities
 {
     /// <summary>
     /// Model pro technologickou skupinu (TechnologicalGroups).
     /// </summary>
-    public class TechnologicalGroup
+    public class TechnologicalGroupEntity
     {
         /// <summary>Primární klíč technologické skupiny.</summary>
         [Key]

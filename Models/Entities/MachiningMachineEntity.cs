@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DHL.Server.Models.DTO
+namespace DHL.Server.Models.Entities
 {
     /// <summary>
     /// Model pro použitý stroj v rámci výkonu mechanizace (MachiningMachines).
     /// </summary>
-    public class MachiningMachine
+    public class MachiningMachineEntity
     {
         /// <summary>Identifikátor výkonu (FK na Machining).</summary>
         [Required]

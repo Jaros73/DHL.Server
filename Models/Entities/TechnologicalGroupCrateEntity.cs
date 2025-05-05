@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DHL.Server.Models.DTO
+namespace DHL.Server.Models.Entities
 {
     /// <summary>
     /// Spojovací model mezi technologickou skupinou a obalem (TechnologicalGroupCrates).
     /// </summary>
-    public class TechnologicalGroupCrate
+    public class TechnologicalGroupCrateEntity
     {
         /// <summary>FK na technologickou skupinu.</summary>
         [Required]

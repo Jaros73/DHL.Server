@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DHL.Server.Models.DTO
+namespace DHL.Server.Models.Entities
 {
     /// <summary>
     /// Model pro přepravní obal (Crates).
     /// </summary>
-    public class Crate
+    public class CrateEntity
     {
         /// <summary>Primární klíč obalu.</summary>
         [Key]

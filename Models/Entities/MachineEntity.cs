@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DHL.Server.Models.DTO
+namespace DHL.Server.Models.Entities
 {
     /// <summary>
     /// Model pro stroj (Machines).
     /// </summary>
-    public class Machine
+    public class MachineEntity
     {
         /// <summary>Primární klíč stroje.</summary>
         [Key]

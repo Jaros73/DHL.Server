@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DHL.Server.Models.Entities;
-using DHL.Server.Models.DTO;
 
 namespace DHL.Server.Data
 {
@@ -9,71 +8,40 @@ namespace DHL.Server.Data
     /// </summary>
     public class ApplicationDbContext : DbContext
     {
-        /// <summary>
-        /// Konstruktor s injektovanými možnostmi konfigurace.
-        /// </summary>
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        /// <summary>
-        /// Tabulka dispečerských záznamů.
-        /// </summary>
         public DbSet<DispatchModelEntity> Dispatches { get; set; }
-
-        /// <summary>
-        /// Tabulka typů dispečerských operací.
-        /// </summary>
         public DbSet<DispatchTypeEntity> DispatchTypes { get; set; }
-
-        /// <summary>
-        /// Tabulka klíčů dispečerských operací.
-        /// </summary>
         public DbSet<DispatchKeyEntity> DispatchKeys { get; set; }
 
-        /// <summary>
-        /// Tabulka lokací.
-        /// </summary>
         public DbSet<LocationEntity> Locations { get; set; }
 
-        /// <summary>
-        /// Tabulka výkonů mechanizace.
-        /// </summary>
-        public DbSet<Machining> Machinings { get; set; }
+        public DbSet<MachiningEntity> Machinings { get; set; } 
+        public DbSet<MachineEntity> Machines { get; set; }
+        public DbSet<MachiningMachineEntity> MachiningMachines { get; set; }
 
-        /// <summary>
-        /// Tabulka strojů.
-        /// </summary>
-        public DbSet<Machine> Machines { get; set; }
-
-        /// <summary>
-        /// Tabulka přiřazení stroje k výkonu.
-        /// </summary>
-        public DbSet<MachiningMachine> MachiningMachines { get; set; }
-
-        /// <summary>
-        /// Tabulka technologických skupin.
-        /// </summary>
-        public DbSet<TechnologicalGroup> TechnologicalGroups { get; set; }
-
-        /// <summary>
-        /// Tabulka přepravních obalů.
-        /// </summary>
-        public DbSet<Crate> Crates { get; set; }
-
-        /// <summary>
-        /// Tabulka přiřazení obalu k technologické skupině.
-        /// </summary>
-        public DbSet<TechnologicalGroupCrate> TechnologicalGroupCrates { get; set; }
-
-        /// <summary>
-        /// Tabulka přiřazení stroje k lokaci.
-        /// </summary>
-        public DbSet<LocationMachine> LocationMachines { get; set; }
+        public DbSet<TechnologicalGroupEntity> TechnologicalGroups { get; set; }
+        public DbSet<CrateEntity> Crates { get; set; }
+        public DbSet<TechnologicalGroupCrateEntity> TechnologicalGroupCrates { get; set; }
+        public DbSet<LocationMachineEntity> LocationMachines { get; set; }
 
         public DbSet<RegionalReportEntity> RegionalReports { get; set; }
         public DbSet<AttachmentEntity> Attachments { get; set; }
+
+        public DbSet<CourseEntity> Courses { get; set; }
+        public DbSet<IrregularCourseEntity> IrregularCourses { get; set; }
+        public DbSet<RemainderEntity> Remainders { get; set; }
+        public DbSet<KurzyPEEntity> KurzyPE { get; set; }
+        public DbSet<ZatezAPEntity> ZatezAP { get; set; }
+
+        public DbSet<CourseDelayReasonEntity> CourseDelayReasons { get; set; }
+        public DbSet<TransporterEntity> Transporters { get; set; }
+        public DbSet<StopEntity> Stops { get; set; }
+        public DbSet<VehicleEntity> Vehicles { get; set; }
+        public DbSet<TrailerEntity> Trailers { get; set; }
 
         /// <summary>
         /// Definuje vztahy mezi entitami.
@@ -83,52 +51,77 @@ namespace DHL.Server.Data
             base.OnModelCreating(modelBuilder);
 
             // MachiningMachine: Composite Key
-            modelBuilder.Entity<MachiningMachine>()
+            modelBuilder.Entity<MachiningMachineEntity>()
                 .HasKey(mm => new { mm.MachiningId, mm.MachineValue });
 
-            modelBuilder.Entity<MachiningMachine>()
-                .HasOne<Machining>()
+            modelBuilder.Entity<MachiningMachineEntity>()
+                .HasOne<MachiningEntity>()
                 .WithMany()
                 .HasForeignKey(mm => mm.MachiningId);
 
-            modelBuilder.Entity<MachiningMachine>()
-                .HasOne<Machine>()
+            modelBuilder.Entity<MachiningMachineEntity>()
+                .HasOne<MachineEntity>()
                 .WithMany()
                 .HasForeignKey(mm => mm.MachineValue);
 
             // TechnologicalGroupCrate: Composite Key
-            modelBuilder.Entity<TechnologicalGroupCrate>()
+            modelBuilder.Entity<TechnologicalGroupCrateEntity>()
                 .HasKey(tgc => new { tgc.TechnologicalGroupValue, tgc.CrateValue });
 
-            modelBuilder.Entity<TechnologicalGroupCrate>()
-                .HasOne<TechnologicalGroup>()
+            modelBuilder.Entity<TechnologicalGroupCrateEntity>()
+                .HasOne<TechnologicalGroupEntity>()
                 .WithMany()
                 .HasForeignKey(tgc => tgc.TechnologicalGroupValue);
 
-            modelBuilder.Entity<TechnologicalGroupCrate>()
-                .HasOne<Crate>()
+            modelBuilder.Entity<TechnologicalGroupCrateEntity>()
+                .HasOne<CrateEntity>()
                 .WithMany()
                 .HasForeignKey(tgc => tgc.CrateValue);
 
             // LocationMachine: Composite Key
-            modelBuilder.Entity<LocationMachine>()
+            modelBuilder.Entity<LocationMachineEntity>()
                 .HasKey(lm => new { lm.LocationId, lm.MachineValue });
 
-            modelBuilder.Entity<LocationMachine>()
+            modelBuilder.Entity<LocationMachineEntity>()
                 .HasOne<LocationEntity>()
                 .WithMany()
                 .HasForeignKey(lm => lm.LocationId);
 
-            modelBuilder.Entity<LocationMachine>()
-                .HasOne<Machine>()
+            modelBuilder.Entity<LocationMachineEntity>()
+                .HasOne<MachineEntity>()
                 .WithMany()
                 .HasForeignKey(lm => lm.MachineValue);
 
+            // RegionalReport ↔ Attachments (1:N)
             modelBuilder.Entity<AttachmentEntity>()
                 .HasOne(a => a.RegionalReport)
                 .WithMany(r => r.Attachments)
                 .HasForeignKey(a => a.RegionalReportId);
 
+            // Optional: explicitní mapování tabulek
+            modelBuilder.Entity<DispatchModelEntity>().ToTable("Dispatches");
+            modelBuilder.Entity<DispatchTypeEntity>().ToTable("DispatchTypes");
+            modelBuilder.Entity<DispatchKeyEntity>().ToTable("DispatchKeys");
+            modelBuilder.Entity<LocationEntity>().ToTable("Locations");
+            modelBuilder.Entity<MachiningEntity>().ToTable("Machinings");
+            modelBuilder.Entity<MachineEntity>().ToTable("Machines");
+            modelBuilder.Entity<MachiningMachineEntity>().ToTable("MachiningMachines");
+            modelBuilder.Entity<TechnologicalGroupEntity>().ToTable("TechnologicalGroups");
+            modelBuilder.Entity<CrateEntity>().ToTable("Crates");
+            modelBuilder.Entity<TechnologicalGroupCrateEntity>().ToTable("TechnologicalGroupCrates");
+            modelBuilder.Entity<LocationMachineEntity>().ToTable("LocationMachines");
+            modelBuilder.Entity<RegionalReportEntity>().ToTable("RegionalReports");
+            modelBuilder.Entity<AttachmentEntity>().ToTable("Attachments");
+            modelBuilder.Entity<CourseEntity>().ToTable("Courses");
+            modelBuilder.Entity<IrregularCourseEntity>().ToTable("IrregularCourses");
+            modelBuilder.Entity<RemainderEntity>().ToTable("Remainders");
+            modelBuilder.Entity<KurzyPEEntity>().ToTable("KurzyPE");
+            modelBuilder.Entity<ZatezAPEntity>().ToTable("ZatezAP");
+            modelBuilder.Entity<CourseDelayReasonEntity>().ToTable("CourseDelayReasons");
+            modelBuilder.Entity<TransporterEntity>().ToTable("Transporters");
+            modelBuilder.Entity<StopEntity>().ToTable("Stops");
+            modelBuilder.Entity<VehicleEntity>().ToTable("Vehicles");
+            modelBuilder.Entity<TrailerEntity>().ToTable("Trailers");
         }
     }
 }
