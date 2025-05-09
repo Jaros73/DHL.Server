@@ -1,0 +1,69 @@
+﻿@using DHL.Server.Features.Ciselniky.Models
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" Class="mb-2">@((Model.Id == 0) ? "Nový kurz PE" : "Úprava kurzu PE")</MudText>
+
+        <MudTextField Label="AP" @bind-Value="Model.AP" Required="true" Class="mt-2" />
+        <MudTextField Label="Název kurzu" @bind-Value="Model.NazevKurzu" Required="true" Class="mt-2" />
+        <MudTextField Label="TC" @bind-Value="Model.TC" Class="mt-2" />
+        <MudTextField Label="PSČ zastávky" @bind-Value="Model.PSCzastavky" Class="mt-2" />
+        <MudTextField Label="Zastávka" @bind-Value="Model.Zastavka" Class="mt-2" />
+
+        <MudTimePicker T="TimeSpan"
+                       Label="Příjezd"
+                       Time="@Model.Prijezd"
+                       TimeChanged="@((TimeSpan? v) => Model.Prijezd = v ?? TimeSpan.Zero)"
+                       Class="mt-2" />
+
+        <MudTimePicker T="TimeSpan"
+                       Label="Odjezd"
+                       Time="@Model.Odjezd"
+                       TimeChanged="@((TimeSpan? v) => Model.Odjezd = v ?? TimeSpan.Zero)"
+                       Class="mt-2" />
+
+        <MudDatePicker T="DateTime"
+                       Label="Datum začátku"
+                       Date="@Model.DatumZ"
+                       DateChanged="@((DateTime? v) => Model.DatumZ = v ?? DateTime.Today)"
+                       Class="mt-2" />
+
+        <MudDatePicker T="DateTime"
+                       Label="Datum ukončení"
+                       Date="@Model.DatumU"
+                       DateChanged="@((DateTime? v) => Model.DatumU = v ?? DateTime.Today)"
+                       Class="mt-2" />
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary" Variant="Variant.Text">Zrušit</MudButton>
+        <MudButton OnClick="Save" Color="Color.Primary">Uložit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public KurzyPEDto Model { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        Model = new KurzyPEDto
+            {
+                DatumZ = Model.DatumZ == default ? DateTime.Today : Model.DatumZ,
+                DatumU = Model.DatumU == default ? DateTime.Today : Model.DatumU
+            };
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void Save()
+    {
+        Console.WriteLine($"Save model: DatumZ={Model.DatumZ}, DatumU={Model.DatumU}");
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+}

@@ -7,7 +7,7 @@ using AutoMapper;
 
 namespace DHL.Server.Features.Ciselniky.Services
 {
-    public class CiselnikyService : ICiselnikyService
+    public class CiselnikyService : IKlicService
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
@@ -43,6 +43,8 @@ namespace DHL.Server.Features.Ciselniky.Services
 
         public async Task<KlicDto?> UpdateAsync(int id, KlicDto dto)
         {
+            Console.WriteLine($"Update received IsActive = {dto.IsActive}");
+
             var entity = await _context.Klics.FindAsync(id);
             if (entity is null)
                 return null;

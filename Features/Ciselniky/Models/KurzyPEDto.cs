@@ -1,7 +1,7 @@
 // File: Models/Dto/KurzyPEDto.cs
 using System;
 
-namespace DHL.Server.Models.DTO
+namespace DHL.Server.Features.Ciselniky.Models
 {
     /// <summary>
     /// DTO pro záznam plánovaných kurzů PE.

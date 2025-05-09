@@ -1,30 +1,30 @@
-﻿// File: Features/Ciselniky/Models/KlicDto.cs
-using System;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace DHL.Server.Features.Ciselniky.Models
 {
     /// <summary>
-    /// DTO pro práci s klíčem technologické skupiny.
+    /// DTO pro přenos dat klíče technologické skupiny.
     /// </summary>
     public class KlicDto
     {
-        /// <summary>ID klíče.</summary>
+        /// <summary>Primární klíč záznamu.</summary>
         public int Id { get; set; }
 
         /// <summary>Název klíče.</summary>
+        [Required(ErrorMessage = "Název je povinný.")]
         public string Name { get; set; } = string.Empty;
 
         /// <summary>Zda je klíč aktivní.</summary>
         public bool IsActive { get; set; }
 
         /// <summary>Datum vytvoření.</summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
 
-        /// <summary>Kdo záznam vytvořil.</summary>
-        public string CreatedBy { get; set; } = "system";
+        /// <summary>Uživatel, který klíč založil.</summary>
+        public string CreatedBy { get; set; } = string.Empty;
 
-        /// <summary>Datum poslední aktualizace.</summary>
-        public DateTime Updated { get; set; } = DateTime.UtcNow;
-
+        /// <summary>Datum poslední změny.</summary>
+        public DateTime Updated { get; set; }
     }
 }

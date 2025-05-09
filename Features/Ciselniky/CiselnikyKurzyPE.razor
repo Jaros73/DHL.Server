@@ -1,0 +1,109 @@
+﻿@using DHL.Server.Features.Ciselniky.Models
+@using DHL.Server.Features.Ciselniky.Interfaces
+@using MudBlazor
+@inject IKurzyPEService KurzyPEService
+@inject IDialogService DialogService
+
+<MudTable Items="_kurzy" Hover="true" Dense="true" Striped="true">
+    <HeaderContent>
+        <MudTh>AP</MudTh>
+        <MudTh>Název kurzu</MudTh>
+        <MudTh>TC</MudTh>
+        <MudTh>Zastávka</MudTh>
+        <MudTh>PSČ</MudTh>
+        <MudTh>Příjezd</MudTh>
+        <MudTh>Odjezd</MudTh>
+        <MudTh>Akce</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.AP</MudTd>
+        <MudTd>@context.NazevKurzu</MudTd>
+        <MudTd>@context.TC</MudTd>
+        <MudTd>@context.Zastavka</MudTd>
+        <MudTd>@context.PSCzastavky</MudTd>
+        <MudTd>@context.Prijezd</MudTd>
+        <MudTd>@context.Odjezd</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                           Color="Color.Primary"
+                           OnClick="() => EditKurz(context)" />
+            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                           Color="Color.Error"
+                           OnClick="() => DeleteKurz(context.Id)" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateKurz">
+    <MudIcon Icon="@Icons.Material.Filled.Add" /> Nový kurz
+</MudButton>
+
+@code {
+    private List<KurzyPEDto> _kurzy = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _kurzy = (await KurzyPEService.GetAllAsync())
+        .OrderBy(k => k.AP)
+        .ToList();
+    }
+
+    private async Task CreateKurz()
+    {
+        await OpenEditDialog(new KurzyPEDto());
+    }
+
+    private async Task EditKurz(KurzyPEDto kurz)
+    {
+        await OpenEditDialog(kurz);
+    }
+
+    private async Task OpenEditDialog(KurzyPEDto original)
+    {
+        var parameters = new DialogParameters { ["Model"] = original };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialogRef = await DialogService.ShowAsync<KurzyPEEditDialog>(
+            original.Id == 0 ? "Nový kurz PE" : "Úprava kurzu PE", parameters, options);
+
+        var result = await dialogRef.Result;
+
+        if (result != null && !result.Canceled && result.Data is KurzyPEDto updated)
+        {
+            KurzyPEDto ulozeny;
+
+            if (updated.Id == 0)
+            {
+                // ⬇⬇⬇ Nutné pro uložení do DB
+                ulozeny = await KurzyPEService.CreateAsync(updated);
+                _kurzy.Add(ulozeny);
+            }
+            else
+            {
+                ulozeny = await KurzyPEService.UpdateAsync(updated.Id, updated) ?? updated;
+                var index = _kurzy.FindIndex(x => x.Id == ulozeny.Id);
+                if (index >= 0)
+                    _kurzy[index] = ulozeny;
+            }
+
+            _kurzy = _kurzy.OrderBy(k => k.AP).ToList();
+            StateHasChanged();
+        }
+    }
+
+
+    private async Task DeleteKurz(int id)
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            "Potvrzení",
+            "Opravdu chcete smazat kurz?",
+            yesText: "Ano", noText: "Ne");
+
+        if (confirmed == true)
+        {
+            await KurzyPEService.DeleteAsync(id);
+            _kurzy = await KurzyPEService.GetAllAsync();
+            StateHasChanged();
+        }
+    }
+}

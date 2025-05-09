@@ -2,7 +2,7 @@
 
 namespace DHL.Server.Features.Ciselniky.Interfaces
 {
-    public interface ICiselnikyService
+    public interface IKlicService
     {
         Task<List<KlicDto>> GetAllAsync();
         Task<KlicDto?> GetByIdAsync(int id);

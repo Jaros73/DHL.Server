@@ -6,7 +6,7 @@
 
 <MudPaper Class="p-4">
     <MudText Typo="Typo.h5" Class="mb-2">Číselníky</MudText>
-    <MudTabs vertical="true" rounded="true" Class="mud-width-full">
+    <MudTabs Vertical="@true" Rounded="@true" Class="mud-width-full">
         <MudTabPanel Text="Klíč">
             <CiselnikyKlic />
         </MudTabPanel>
@@ -24,6 +24,9 @@
         </MudTabPanel>
         <MudTabPanel Text="Příp. vozidlo RZ">
             <CiselnikyPripojneVozidlo />
+        </MudTabPanel>
+        <MudTabPanel Text="Kurzy z PE">
+            <CiselnikyKurzyPE />
         </MudTabPanel>
     </MudTabs>
 </MudPaper>

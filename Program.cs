@@ -76,7 +76,10 @@ builder.Services.AddMudServices(config =>
 });
 
 builder.Services.AddScoped<IDispatchService, DispatchService>();
-builder.Services.AddScoped<ICiselnikyService, CiselnikyService>();
+builder.Services.AddScoped<IKlicService, CiselnikyService>();
+builder.Services.AddScoped<IKurzyPEService, KurzyPEService>();
+builder.Services.AddScoped<KurzyPEImportService>();
+
 
 builder.Services.AddSingleton<CssMinifierService>();
 

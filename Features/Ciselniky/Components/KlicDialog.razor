@@ -1,23 +1,29 @@
 ﻿@using DHL.Server.Features.Ciselniky.Models
 @using DHL.Server.Features.Ciselniky.Interfaces
 @using MudBlazor
-@inject ICiselnikyService CiselnikyService
+@inject IKlicService CiselnikyService
+
 
 <MudDialog>
     <DialogContent>
         <MudTextField Label="Název" @bind-Value="_model.Name" Required="true" Class="mt-2" />
 
-        <MudSwitch T="bool"
-                   @bind-Checked="_model.IsActive"
-                   Color="Color.Primary"
-                   Class="mt-2"
-                   Label="@(_model.IsActive ? "Aktivní" : "Neaktivní")" />
-
+        @if (_initialized)
+        {
+            <div class="mt-4 d-flex align-items-center gap-2">
+                <input type="checkbox"
+                       role="switch"
+                       class="form-check-input"
+                       checked="@_model.IsActive"
+                       @onchange="OnCheckboxChanged" />
+                <label class="form-check-label">@(_model.IsActive ? "Aktivní" : "Neaktivní")</label>
+            </div>
+        }
 
         @if (_model.Id != 0)
         {
             <MudText Typo="Typo.caption" Class="mt-4 text-secondary">
-                Založeno: @_model.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                Založeno: @_model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
             </MudText>
         }
     </DialogContent>
@@ -33,10 +39,10 @@
     [Parameter] public KlicDto Model { get; set; } = new();
 
     private KlicDto _model = new();
+    private bool _initialized = false;
 
     protected override void OnInitialized()
     {
-        // Přímá kopie, aby přepínač zůstal propojený
         _model = new KlicDto
             {
                 Id = Model.Id,
@@ -46,13 +52,13 @@
                 CreatedBy = string.IsNullOrWhiteSpace(Model.CreatedBy) ? "system" : Model.CreatedBy,
                 Updated = DateTime.UtcNow
             };
+
+        _initialized = true;
     }
 
     private async Task Save()
     {
         _model.Updated = DateTime.UtcNow;
-
-        Console.WriteLine($"Saving: Name={_model.Name}, IsActive={_model.IsActive}, Created={_model.CreatedAt}");
 
         var result = _model.Id == 0
             ? await CiselnikyService.CreateAsync(_model)
@@ -65,4 +71,19 @@
     {
         MudDialog.Cancel();
     }
+
+    private void OnCheckboxChanged(ChangeEventArgs e)
+    {
+        if (bool.TryParse(e.Value?.ToString(), out var parsed))
+        {
+            _model.IsActive = parsed;
+        }
+        else
+        {
+            // fallback pro checkbox: "on" znamená true
+            _model.IsActive = e.Value?.ToString()?.ToLower() == "on";
+        }
+
+    }
+
 }
