@@ -1,0 +1,116 @@
+﻿@page "/ciselniky/klic"
+@using DHL.Server.Features.Ciselniky.Models
+@using DHL.Server.Features.Ciselniky.Components
+@using DHL.Server.Features.Ciselniky.Interfaces
+@inject ICiselnikyService CiselnikyService
+@inject IDialogService DialogService
+@using MudBlazor
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5" Class="mb-2">Seznam Klíčů</MudText>
+
+    <MudTable Items="_keys" Hover="true" Dense="true" Bordered="true">
+        <HeaderContent>
+            <MudTh>Název</MudTh>
+            <MudTh>Stav</MudTh>
+            <MudTh>Založeno</MudTh>
+            <MudTh>Akce</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Název">@context.Name</MudTd>
+            <MudTd DataLabel="Stav">
+                <MudChip T="string"
+                         Color="@(context.IsActive ? Color.Success : Color.Default)"
+                         Variant="Variant.Filled"
+                         Size="Size.Small">
+                    @(context.IsActive ? "Aktivní" : "Neaktivní")
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Založeno">@context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudTd>
+            <MudTd DataLabel="Akce">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               Color="Color.Primary"
+                               OnClick="() => OpenEditDialog(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error"
+                               OnClick="() => DeleteKey(context.Id)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               OnClick="CreateKey"
+               StartIcon="@Icons.Material.Filled.Add">
+        Přidat
+    </MudButton>
+</MudPaper>
+
+@code {
+    private List<KlicDto> _keys = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _keys = await CiselnikyService.GetAllAsync();
+    }
+
+    private async Task OpenEditDialog(KlicDto original)
+    {
+        // Vytvoříme kopii, aby se dialog nepropojoval přímo do seznamu
+        var dto = new KlicDto
+            {
+                Id = original.Id,
+                Name = original.Name,
+                IsActive = original.IsActive,
+                CreatedAt = original.CreatedAt,
+                CreatedBy = original.CreatedBy,
+                Updated = original.Updated
+            };
+
+        var parameters = new DialogParameters { ["Model"] = dto };
+        var options = new DialogOptions
+            {
+                CloseButton = true,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true,
+                NoHeader = false,
+                Position = DialogPosition.Center
+            };
+
+        var dialogRef = await DialogService.ShowAsync<KlicDialog>(
+            dto.Id == 0 ? "Nový klíč" : "Úprava klíče", parameters, options);
+
+        var result = await dialogRef.Result;
+
+        if (result != null && !result.Canceled && result.Data is KlicDto updated)
+        {
+            var existing = _keys.FirstOrDefault(k => k.Id == updated.Id);
+            if (existing is not null)
+            {
+                existing.Name = updated.Name;
+                existing.IsActive = updated.IsActive;
+                existing.CreatedAt = updated.CreatedAt;
+                existing.CreatedBy = updated.CreatedBy;
+                existing.Updated = updated.Updated;
+            }
+            else
+            {
+                _keys.Add(updated);
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task CreateKey()
+    {
+        await OpenEditDialog(new KlicDto());
+    }
+
+    private async Task DeleteKey(int id)
+    {
+        await CiselnikyService.DeleteAsync(id);
+        _keys = await CiselnikyService.GetAllAsync();
+        StateHasChanged();
+    }
+}

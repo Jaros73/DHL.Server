@@ -10,6 +10,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Data\Seed\klic.csv" />
+	  <None Remove="Data\Seed\Kurz.csv" />
 	  <None Remove="Data\Seed\locations.csv" />
 	</ItemGroup>
 
@@ -44,7 +46,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="Data\Seed\locations.csv">
+	  <Content Include="Data\Seed\klic.csv">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Data\Seed\Kurz.csv">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Data\Seed\Locations.csv">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>

@@ -1,0 +1,68 @@
+﻿@using DHL.Server.Features.Ciselniky.Models
+@using DHL.Server.Features.Ciselniky.Interfaces
+@using MudBlazor
+@inject ICiselnikyService CiselnikyService
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField Label="Název" @bind-Value="_model.Name" Required="true" Class="mt-2" />
+
+        <MudSwitch T="bool"
+                   @bind-Checked="_model.IsActive"
+                   Color="Color.Primary"
+                   Class="mt-2"
+                   Label="@(_model.IsActive ? "Aktivní" : "Neaktivní")" />
+
+
+        @if (_model.Id != 0)
+        {
+            <MudText Typo="Typo.caption" Class="mt-4 text-secondary">
+                Založeno: @_model.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+            </MudText>
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary" Variant="Variant.Text">Zrušit</MudButton>
+        <MudButton OnClick="Save" Color="Color.Primary">Uložit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public KlicDto Model { get; set; } = new();
+
+    private KlicDto _model = new();
+
+    protected override void OnInitialized()
+    {
+        // Přímá kopie, aby přepínač zůstal propojený
+        _model = new KlicDto
+            {
+                Id = Model.Id,
+                Name = Model.Name,
+                IsActive = Model.IsActive,
+                CreatedAt = Model.Id == 0 || Model.CreatedAt == default ? DateTime.UtcNow : Model.CreatedAt,
+                CreatedBy = string.IsNullOrWhiteSpace(Model.CreatedBy) ? "system" : Model.CreatedBy,
+                Updated = DateTime.UtcNow
+            };
+    }
+
+    private async Task Save()
+    {
+        _model.Updated = DateTime.UtcNow;
+
+        Console.WriteLine($"Saving: Name={_model.Name}, IsActive={_model.IsActive}, Created={_model.CreatedAt}");
+
+        var result = _model.Id == 0
+            ? await CiselnikyService.CreateAsync(_model)
+            : await CiselnikyService.UpdateAsync(_model.Id, _model) ?? _model;
+
+        MudDialog.Close(DialogResult.Ok(result));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

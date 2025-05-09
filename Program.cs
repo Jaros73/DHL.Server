@@ -20,6 +20,8 @@ using DHL.Server.Features.Dispatching.Interfaces;
 using DHL.Server.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
+using DHL.Server.Features.Ciselniky.Interfaces;
+using DHL.Server.Features.Ciselniky.Services;
 
 Environment.SetEnvironmentVariable("DOTNET_WATCH", "false");
 
@@ -74,6 +76,8 @@ builder.Services.AddMudServices(config =>
 });
 
 builder.Services.AddScoped<IDispatchService, DispatchService>();
+builder.Services.AddScoped<ICiselnikyService, CiselnikyService>();
+
 builder.Services.AddSingleton<CssMinifierService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

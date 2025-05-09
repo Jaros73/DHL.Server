@@ -1,0 +1,50 @@
+﻿@using DHL.Server.Features.Ciselniky.Models
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5" Class="mb-2">Seznam Klíčů</MudText>
+
+    <MudTable Items="Items" Hover="true" Dense="true" Bordered="true">
+        <HeaderContent>
+            <MudTh>Název</MudTh>
+            <MudTh>Stav</MudTh>
+            <MudTh>Založeno</MudTh>
+            <MudTh>Akce</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Název">@context.Name</MudTd>
+            <MudTd DataLabel="Stav">
+                <MudChip T="string"
+                         Color="@(context.IsActive ? Color.Success : Color.Default)"
+                         Variant="Variant.Filled"
+                         Size="Size.Small">
+                    @(context.IsActive ? "Aktivní" : "Neaktivní")
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Založeno">
+                @context.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+            </MudTd>
+            <MudTd DataLabel="Akce">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary"
+                               OnClick="() => OnEdit.InvokeAsync(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                               OnClick="() => OnDelete.InvokeAsync(context)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               OnClick="OnCreate"
+               StartIcon="@Icons.Material.Filled.Add">
+        Přidat
+    </MudButton>
+</MudPaper>
+
+@code {
+    [Parameter] public List<KlicDto> Items { get; set; } = new();
+    [Parameter] public EventCallback<KlicDto> OnEdit { get; set; }
+    [Parameter] public EventCallback<KlicDto> OnDelete { get; set; }
+    [Parameter] public EventCallback OnCreate { get; set; }
+}

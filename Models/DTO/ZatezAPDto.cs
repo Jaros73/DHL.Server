@@ -1,27 +1,27 @@
-﻿// File: Models/DTO/ZatezAPDto.cs
-using System;
-using System.ComponentModel.DataAnnotations;
-
 namespace DHL.Server.Models.DTO
 {
     /// <summary>
-    /// DTO model pro zatížení na AP.
+    /// DTO pro ZatezAP.
     /// </summary>
     public class ZatezAPDto
     {
+        /// <summary><summary>Primární klíč záznamu.</summary></summary>
         public int Id { get; set; }
 
-        [MaxLength(255)]
+        /// <summary><summary>Kód trasy (TC).</summary></summary>
         public string TC { get; set; } = string.Empty;
 
-        [MaxLength(6)]
+        /// <summary><summary>Výpravní místo (AP).</summary></summary>
         public string AP { get; set; } = string.Empty;
 
-        [MaxLength(13)]
+        /// <summary><summary>Unikátní kód zásilky (UK).</summary></summary>
         public string UK { get; set; } = string.Empty;
 
+        /// <summary><summary>Počet kusů.</summary></summary>
         public int PocetKS { get; set; }
 
+        /// <summary><summary>Datum aktualizace.</summary></summary>
         public DateTime DatumU { get; set; }
+
     }
 }

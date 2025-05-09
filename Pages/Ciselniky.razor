@@ -1,0 +1,29 @@
+﻿@page "/ciselniky"
+@using DHL.Server.Features.Ciselniky
+@using DHL.Server.Features.Ciselniky.Components
+
+@layout MainLayout
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5" Class="mb-2">Číselníky</MudText>
+    <MudTabs vertical="true" rounded="true" Class="mud-width-full">
+        <MudTabPanel Text="Klíč">
+            <CiselnikyKlic />
+        </MudTabPanel>
+        <MudTabPanel Text="Příčina zpoždění">
+            <CiselnikyZpozdeni />
+        </MudTabPanel>
+        <MudTabPanel Text="Přepravce">
+            <CiselnikyPrepravce />
+        </MudTabPanel>
+        <MudTabPanel Text="Zastávky">
+            <CiselnikyZastavky />
+        </MudTabPanel>
+        <MudTabPanel Text="Vozidlo RZ">
+            <CiselnikyVozidla />
+        </MudTabPanel>
+        <MudTabPanel Text="Příp. vozidlo RZ">
+            <CiselnikyPripojneVozidlo />
+        </MudTabPanel>
+    </MudTabs>
+</MudPaper>

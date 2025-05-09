@@ -1,26 +1,28 @@
-﻿// File: Models/DTO/KurzyPEDto.cs
+// File: Models/Dto/KurzyPEDto.cs
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace DHL.Server.Models.DTO
 {
     /// <summary>
-    /// DTO model pro kurz PE.
+    /// DTO pro záznam plánovaných kurzů PE.
     /// </summary>
     public class KurzyPEDto
     {
         public int Id { get; set; }
 
-        [MaxLength(255)]
-        public string TC { get; set; } = string.Empty;
-
-        [MaxLength(6)]
         public string AP { get; set; } = string.Empty;
 
-        [MaxLength(255)]
+        public string NazevKurzu { get; set; } = string.Empty;
+
+        public string TC { get; set; } = string.Empty;
+
+        public string PSCzastavky { get; set; } = string.Empty;
+
         public string Zastavka { get; set; } = string.Empty;
 
-        public TimeSpan Odjez { get; set; }
+        public TimeSpan Prijezd { get; set; }
+
+        public TimeSpan Odjezd { get; set; }
 
         public DateTime DatumZ { get; set; }
 

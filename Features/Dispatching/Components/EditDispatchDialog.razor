@@ -8,7 +8,7 @@
 
         <MudStack Spacing="2">
             <MudTextField T="string" Label="DSPU" @bind-Value="model.LocationName" Required="true" />
-            <MudDatePicker TDate="DateTime?"
+            <MudDatePicker tDate="DateTime?"
                            Date="model.UserTime"
                            DateChanged="@(val => model.UserTime = val ?? DateTime.Now)"
                            Label="Datum ku"

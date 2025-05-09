@@ -18,31 +18,33 @@ namespace DHL.Server.Data
                 await context.SaveChangesAsync();
             }
 
-            if (!await context.DispatchTypes.AnyAsync() && File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "dispatchtypes.csv")))
+            if (!await context.Klics.AnyAsync())
             {
-                var types = await LoadDispatchTypesAsync();
-                await context.DispatchTypes.AddRangeAsync(types);
+                var klics = await LoadKlicsAsync();
+                await context.Klics.AddRangeAsync(klics);
                 await context.SaveChangesAsync();
             }
 
-            if (!await context.DispatchKeys.AnyAsync() && File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "dispatchkeys.csv")))
+            if (!await context.KurzyPEs.AnyAsync())
             {
-                var keys = await LoadDispatchKeysAsync();
-                await context.DispatchKeys.AddRangeAsync(keys);
+                var kurzs = await LoadKurzyPEsAsync();
+                await context.KurzyPEs.AddRangeAsync(kurzs);
                 await context.SaveChangesAsync();
             }
+
         }
-
 
         private static async Task<List<LocationEntity>> LoadLocationsAsync()
         {
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "locations.csv");
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "Locations.csv");
             var lines = await File.ReadAllLinesAsync(filePath);
-
             var result = new List<LocationEntity>();
 
             foreach (var line in lines)
             {
+                if (string.IsNullOrWhiteSpace(line) || line.Trim() == ";;")
+                    continue;
+
                 var parts = line.Split(';');
 
                 if (parts.Length != 3 || string.IsNullOrWhiteSpace(parts[2]))
@@ -68,32 +70,60 @@ namespace DHL.Server.Data
             return result;
         }
 
-        private static async Task<List<DispatchTypeEntity>> LoadDispatchTypesAsync()
+        private static async Task<List<KlicEntity>> LoadKlicsAsync()
         {
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "dispatchtypes.csv");
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "Klic.csv");
             var lines = await File.ReadAllLinesAsync(filePath);
-            return lines.Skip(1)
-                .Select(line => line.Split(','))
-                .Select(parts => new DispatchTypeEntity
+            var result = new List<KlicEntity>();
+
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.Trim() == ";;")
+                    continue;
+
+                var parts = line.Split(';');
+
+                result.Add(new KlicEntity
                 {
-                    Id = int.Parse(parts[0], CultureInfo.InvariantCulture),
-                    Name = parts[1]
-                })
-                .ToList();
+                    Name = parts[0],
+                    IsActive = true,
+                    CreatedAt = DateTime.Parse("01.01.2025"),
+                    CreatedBy = "Režňák Roman"
+                });
+            }
+
+            return result;
         }
 
-        private static async Task<List<DispatchKeyEntity>> LoadDispatchKeysAsync()
+        private static async Task<List<KurzyPEEntity>> LoadKurzyPEsAsync()
         {
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "dispatchkeys.csv");
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "Kurz.csv");
             var lines = await File.ReadAllLinesAsync(filePath);
-            return lines.Skip(1)
-                .Select(line => line.Split(','))
-                .Select(parts => new DispatchKeyEntity
+            var result = new List<KurzyPEEntity>();
+
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.Trim() == ";;")
+                    continue;
+
+                var parts = line.Split(';');
+
+                result.Add(new KurzyPEEntity
                 {
-                    Id = int.Parse(parts[0], CultureInfo.InvariantCulture),
-                    Name = parts[1]
-                })
-                .ToList();
+                    AP = parts[0],
+                    NazevKurzu = parts[1],
+                    TC = parts[2],
+                    PSCzastavky = parts[3],
+                    Zastavka = parts[4],
+                    Prijezd = TimeSpan.Parse(parts[5]),
+                    Odjezd = TimeSpan.Parse(parts[6]),
+                    DatumZ = DateTime.Parse("01.05.2025"),
+                    DatumU = DateTime.Parse("31.12.2050")
+                });
+            }
+
+            return result;
         }
+
     }
 }

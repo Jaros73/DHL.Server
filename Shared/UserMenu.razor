@@ -5,23 +5,37 @@
 @inject NavigationManager Navigation
 
 <div class="user-menu-container" @onclick:stopPropagation="true">
-    <div class="avatar" @onclick="ToggleLogout">RR</div>
+    <div class="avatar" @onclick="ToggleLogout">@userInitials</div>
     @if (showLogout)
     {
         <div class="dropdown-menu">
+            <div class="username-display">@userName</div>
             <button class="logout-btn" @onclick="PerformLogout">Odhlásit</button>
         </div>
     }
 </div>
 
-
 @code {
     private bool showLogout = false;
+    private string userName = "Neznámý";
+    private string userInitials = "??";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userName = user.Identity.Name ?? "Neznámý";
+            userInitials = string.Concat(userName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => s[0])).ToUpperInvariant();
+        }
+    }
 
     private void ToggleLogout()
     {
         showLogout = !showLogout;
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
     private void PerformLogout()
@@ -30,6 +44,7 @@
         Navigation.NavigateTo("https://portal.example.com/logout", forceLoad: true);
     }
 }
+
 
 <style>
     .user-menu-container {
@@ -40,6 +55,13 @@
         padding: 0.5rem 1rem;
         cursor: pointer;
     }
+
+    .username-display {
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
 
     .avatar {
         width: 40px;

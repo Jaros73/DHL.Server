@@ -20,16 +20,16 @@ namespace DHL.Server.Features.Dispatching.Services
 
         public async Task CreateDispatchAsync(DispatchModelEntity newDispatch)
         {
-            _context.Dispatches.Add(newDispatch);
+            _context.DispatchModels.Add(newDispatch);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteDispatchAsync(int id)
         {
-            var dispatch = await _context.Dispatches.FindAsync(id);
+            var dispatch = await _context.DispatchModels.FindAsync(id);
             if (dispatch != null)
             {
-                _context.Dispatches.Remove(dispatch);
+                _context.DispatchModels.Remove(dispatch);
                 await _context.SaveChangesAsync();
             }
         }
@@ -50,12 +50,12 @@ namespace DHL.Server.Features.Dispatching.Services
 
         public async Task<DispatchModelEntity?> GetDispatchByIdAsync(int id)
         {
-            return await _context.Dispatches.FirstOrDefaultAsync(d => d.Id == id);
+            return await _context.DispatchModels.FirstOrDefaultAsync(d => d.Id == id);
         }
 
         public async Task<List<DispatchModelEntity>> GetFilteredDispatchesAsync(DispatchFilter filter)
         {
-            var query = _context.Dispatches.AsQueryable();
+            var query = _context.DispatchModels.AsQueryable();
 
             if (filter.CreatedAt != null)
             {
@@ -80,7 +80,7 @@ namespace DHL.Server.Features.Dispatching.Services
 
         public async Task<List<DispatchModelEntity>> GetDispatchesAsync(CancellationToken cancellationToken = default)
         {
-            return await _context.Dispatches.ToListAsync(cancellationToken);
+            return await _context.DispatchModels.ToListAsync(cancellationToken);
         }
 
     }
