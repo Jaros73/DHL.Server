@@ -3,7 +3,6 @@
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6" Class="mb-2">@((Model.Id == 0) ? "Nový kurz PE" : "Úprava kurzu PE")</MudText>
 
         <MudTextField Label="AP" @bind-Value="Model.AP" Required="true" Class="mt-2" />
         <MudTextField Label="Název kurzu" @bind-Value="Model.NazevKurzu" Required="true" Class="mt-2" />
@@ -49,11 +48,11 @@
 
     protected override void OnInitialized()
     {
-        Model = new KurzyPEDto
-            {
-                DatumZ = Model.DatumZ == default ? DateTime.Today : Model.DatumZ,
-                DatumU = Model.DatumU == default ? DateTime.Today : Model.DatumU
-            };
+        if (Model.DatumZ == default)
+            Model.DatumZ = DateTime.Today;
+
+        if (Model.DatumU == default)
+            Model.DatumU = DateTime.Today;
     }
 
     private void Cancel()

@@ -4,6 +4,8 @@ using DHL.Server.Features.Ciselniky.Interfaces;
 using DHL.Server.Features.Ciselniky.Models;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using static MudBlazor.CategoryTypes;
+using AutoMapper.QueryableExtensions;
 
 namespace DHL.Server.Features.Ciselniky.Services
 {
@@ -13,10 +15,14 @@ namespace DHL.Server.Features.Ciselniky.Services
     public class KurzyPEService : IKurzyPEService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly AutoMapper.IConfigurationProvider _config;
 
-        public KurzyPEService(ApplicationDbContext context)
+        public KurzyPEService(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
+            _config = mapper.ConfigurationProvider;
         }
 
         public async Task<List<KurzyPEDto>> GetAllAsync()
@@ -109,5 +115,40 @@ namespace DHL.Server.Features.Ciselniky.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<(IEnumerable<KurzyPEDto> Items, int TotalCount)> GetPageAsync(int skip, int take, string? search)
+        {
+            var query = _context.KurzyPEs.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(k =>
+                    k.AP.Contains(search) ||
+                    k.NazevKurzu.Contains(search) ||
+                    k.Zastavka.Contains(search));
+            }
+
+            var total = await query.CountAsync();
+            var data = await query
+                .OrderBy(k => k.AP)
+                .Skip(skip)
+                .Take(take)
+                .Select(k => new KurzyPEDto
+                {
+                    Id = k.Id,
+                    AP = k.AP,
+                    NazevKurzu = k.NazevKurzu,
+                    TC = k.TC,
+                    Zastavka = k.Zastavka,
+                    PSCzastavky = k.PSCzastavky,
+                    Prijezd = k.Prijezd,
+                    Odjezd = k.Odjezd
+                })
+                .ToListAsync();
+
+            return (data, total);
+        }
+
+
     }
 }

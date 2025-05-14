@@ -10,6 +10,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="Features\Ciselniky\Components\KurzyPEList.razor" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <None Remove="Data\Seed\klic.csv" />
 	  <None Remove="Data\Seed\Kurz.csv" />
 	  <None Remove="Data\Seed\locations.csv" />
@@ -18,6 +22,7 @@
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="12.0.1" />
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+		<PackageReference Include="ClosedXML" Version="0.104.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.12" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.12" />

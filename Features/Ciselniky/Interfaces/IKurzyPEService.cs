@@ -12,5 +12,9 @@ namespace DHL.Server.Features.Ciselniky.Interfaces
         Task<KurzyPEDto> CreateAsync(KurzyPEDto dto);
         Task<KurzyPEDto?> UpdateAsync(int id, KurzyPEDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<(IEnumerable<KurzyPEDto> Items, int TotalCount)> GetPageAsync(int skip, int take, string? search);
+
+
+
     }
 }

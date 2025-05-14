@@ -1,7 +1,118 @@
-﻿<MudText Typo="Typo.body1">TODO: Tabulka Klíčů</MudText>
+﻿@using DHL.Server.Features.Ciselniky.Interfaces
+@using DHL.Server.Features.Ciselniky.Models
+@using DHL.Server.Models.DTO
+@using MudBlazor
+@inject IPrepravceService PrepravceService
+@inject IDialogService DialogService
 
-<h3>CiselnikyPrepravce</h3>
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5" Class="mb-2">Seznam přepravců</MudText>
+
+    <div class="mb-2">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreatePrepravce" StartIcon="@Icons.Material.Filled.Add">
+            Nový přepravce
+        </MudButton>
+    </div>
+
+    <MudTable Items="_prepravci" Hover="true" Dense="true" Striped="true">
+        <HeaderContent>
+            <MudTh>Název</MudTh>
+            <MudTh>Stav</MudTh>
+            <MudTh>Založeno</MudTh>
+            <MudTh>Akce</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd DataLabel="Stav">
+                <MudChip T="string"
+                         Color="@(context.IsActive ? Color.Success : Color.Default)"
+                         Variant="Variant.Filled"
+                         Size="Size.Small">
+                    @(context.IsActive ? "Aktivní" : "Neaktivní")
+                </MudChip>
+            </MudTd>
+            <MudTd>@context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditPrepravce(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeletePrepravce(context.Id)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
 
 @code {
+    private List<PrepravceDto> _prepravci = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        _prepravci = await PrepravceService.GetAllAsync();
+    }
+
+    private async Task CreatePrepravce()
+    {
+        await OpenEditDialog(new PrepravceDto());
+    }
+
+    private async Task EditPrepravce(PrepravceDto original)
+    {
+        await OpenEditDialog(original);
+    }
+
+    private async Task OpenEditDialog(PrepravceDto original)
+    {
+
+        // Vytvoříme kopii, aby se dialog nepropojoval přímo do seznamu
+        var dto = new PrepravceDto
+            {
+                Id = original.Id,
+                Name = original.Name,
+                IsActive = original.IsActive,
+                CreatedAt = original.CreatedAt,
+                CreatedBy = original.CreatedBy
+            };
+
+        var parameters = new DialogParameters { ["Model"] = dto };
+        var options = new DialogOptions
+            {
+                CloseButton = true,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true,
+                NoHeader = false,
+                Position = DialogPosition.Center
+            };
+
+        var dialogRef = await DialogService.ShowAsync<PrepravceDialog>(
+            dto.Id == 0 ? "Nový přepravce" : "Úprava přepravce", parameters, options);
+
+        var result = await dialogRef.Result;
+
+        if (result != null && !result.Canceled && result.Data is PrepravceDto updated)
+        {
+            var existing = _prepravci.FirstOrDefault(k => k.Id == updated.Id);
+            if (existing is not null)
+            {
+                existing.Name = updated.Name;
+                existing.IsActive = updated.IsActive;
+                existing.CreatedAt = updated.CreatedAt;
+                existing.CreatedBy = updated.CreatedBy;
+            }
+            else
+            {
+                _prepravci.Add(updated);
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeletePrepravce(int id)
+    {
+        var confirmed = await DialogService.ShowMessageBox("Potvrzení", "Opravdu chcete smazat přepravce?", "Ano", "Ne");
+        if (confirmed == true)
+        {
+            await PrepravceService.DeleteAsync(id);
+            _prepravci = await PrepravceService.GetAllAsync();
+            StateHasChanged();
+        }
+    }
 }

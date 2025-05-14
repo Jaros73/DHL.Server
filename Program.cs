@@ -79,6 +79,7 @@ builder.Services.AddScoped<IDispatchService, DispatchService>();
 builder.Services.AddScoped<IKlicService, CiselnikyService>();
 builder.Services.AddScoped<IKurzyPEService, KurzyPEService>();
 builder.Services.AddScoped<KurzyPEImportService>();
+builder.Services.AddScoped<IPrepravceService, PrepravceService>();
 
 
 builder.Services.AddSingleton<CssMinifierService>();

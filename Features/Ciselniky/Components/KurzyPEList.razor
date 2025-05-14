@@ -8,53 +8,72 @@
 @inject IDialogService DialogService
 
 <MudPaper Class="p-4">
+
     <MudText Typo="Typo.h5" Class="mb-2">Plánované kurzy PE</MudText>
 
     <div class="mb-2">
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateKurz" StartIcon="@Icons.Material.Filled.Add">
-            Nový kurz
+            Nový kurz +
         </MudButton>
         <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="DeleteAllKurzy" StartIcon="@Icons.Material.Filled.DeleteForever" Class="ml-2">
             Smazat vše
         </MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Default" StartIcon="@Icons.Material.Filled.UploadFile" Class="ml-2">
-            <InputFile OnChange="HandleFileUpload" />
-        </MudButton>
+        <label class="mud-button-root mud-button mud-button-outlined mud-button-default ml-2" style="cursor: pointer;">
+            <MudIcon Icon="@Icons.Material.Filled.UploadFile" Class="mud-icon-root mud-icon-start" />
+            <span class="mud-button-label">Nahrát CSV</span>
+            <InputFile OnChange="HandleFileUpload" class="d-none" />
+        </label>
     </div>
 
-    <MudTable Items="_kurzy" Hover="true" Dense="true" Striped="true" RowsPerPage="10">
-        <HeaderContent>
-            <MudTh>AP</MudTh>
-            <MudTh>Název kurzu</MudTh>
-            <MudTh>TC</MudTh>
-            <MudTh>Zastávka</MudTh>
-            <MudTh>PSČ</MudTh>
-            <MudTh>Příjezd</MudTh>
-            <MudTh>Odjezd</MudTh>
-            <MudTh>Akce</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.AP</MudTd>
-            <MudTd>@context.NazevKurzu</MudTd>
-            <MudTd>@context.TC</MudTd>
-            <MudTd>@context.Zastavka</MudTd>
-            <MudTd>@context.PSCzastavky</MudTd>
-            <MudTd>@context.Prijezd.ToString(@"hh\:mm")</MudTd>
-            <MudTd>@context.Odjezd.ToString(@"hh\:mm")</MudTd>
-            <MudTd>
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditKurz(context)" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteKurz(context.Id)" />
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+
+    <MudTable @ref="table"
+              T="KurzyPEDto"
+              ServerData="LoadServerData"
+              Hover="true"
+              Dense="true"
+              Striped="true"
+              FixedHeader="true"
+              Height="400px"
+              RowsPerPage="10"
+              Elevation="0">
+
+            <HeaderContent>
+                <MudTh>AP</MudTh>
+                <MudTh>Název kurzu</MudTh>
+                <MudTh>TC</MudTh>
+                <MudTh>Zastávka</MudTh>
+                <MudTh>PSČ</MudTh>
+                <MudTh>Příjezd</MudTh>
+                <MudTh>Odjezd</MudTh>
+                <MudTh>Akce</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.AP</MudTd>
+                <MudTd>@context.NazevKurzu</MudTd>
+                <MudTd>@context.TC</MudTd>
+                <MudTd>@context.Zastavka</MudTd>
+                <MudTd>@context.PSCzastavky</MudTd>
+                <MudTd>@context.Prijezd.ToString(@"hh\:mm")</MudTd>
+                <MudTd>@context.Odjezd.ToString(@"hh\:mm")</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditKurz(context)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteKurz(context.Id)" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+
 </MudPaper>
 
-@code {
-    private List<KurzyPEDto> _kurzy = new();
 
-    protected override async Task OnInitializedAsync()
+@code {
+    private MudTable<KurzyPEDto>? table;
+
+    private string _searchString = string.Empty;
+
+    private async Task ReloadData()
     {
-        _kurzy = (await KurzyPEService.GetAllAsync()).OrderBy(k => k.AP).ToList();
+        if (table is not null)
+            await table.ReloadServerData();
     }
 
     private async Task CreateKurz() => await OpenEditDialog(new KurzyPEDto());
@@ -73,22 +92,17 @@
 
         if (result != null && !result.Canceled && result.Data is KurzyPEDto updated)
         {
-            KurzyPEDto ulozeny;
-
             if (updated.Id == 0)
             {
-                ulozeny = await KurzyPEService.CreateAsync(updated);
-                _kurzy.Add(ulozeny);
+                await KurzyPEService.CreateAsync(updated);
             }
             else
             {
-                ulozeny = await KurzyPEService.UpdateAsync(updated.Id, updated) ?? updated;
-                var index = _kurzy.FindIndex(x => x.Id == ulozeny.Id);
-                if (index >= 0) _kurzy[index] = ulozeny;
+                await KurzyPEService.UpdateAsync(updated.Id, updated);
             }
 
-            _kurzy = _kurzy.OrderBy(k => k.AP).ToList();
-            StateHasChanged();
+            if (table is not null)
+                await table.ReloadServerData();
         }
     }
 
@@ -98,8 +112,8 @@
         if (confirmed == true)
         {
             await KurzyPEService.DeleteAsync(id);
-            _kurzy = (await KurzyPEService.GetAllAsync()).OrderBy(k => k.AP).ToList();
-            StateHasChanged();
+            if (table is not null)
+                await table.ReloadServerData();
         }
     }
 
@@ -108,12 +122,14 @@
         var confirmed = await DialogService.ShowMessageBox("Potvrzení", "Opravdu chcete smazat všechny kurzy?", "Ano", "Ne");
         if (confirmed == true)
         {
-            foreach (var kurz in _kurzy.ToList())
+            var allKurzy = await KurzyPEService.GetAllAsync();
+            foreach (var kurz in allKurzy)
             {
                 await KurzyPEService.DeleteAsync(kurz.Id);
             }
-            _kurzy.Clear();
-            StateHasChanged();
+
+            if (table is not null)
+                await table.ReloadServerData();
         }
     }
 
@@ -134,10 +150,27 @@
 
         var count = await ImportService.ImportFromCsvAsync(tempFilePath);
 
-        _kurzy = (await KurzyPEService.GetAllAsync()).OrderBy(k => k.AP).ToList();
         File.Delete(tempFilePath);
-
         await DialogService.ShowMessageBox("Import dokončen", $"Načeteno záznamů: {count}");
-        StateHasChanged();
+
+        if (table is not null)
+            await table.ReloadServerData();
     }
+
+    private async Task<TableData<KurzyPEDto>> LoadServerData(TableState state, CancellationToken cancellationToken)
+    {
+        var result = await KurzyPEService.GetPageAsync(
+            skip: state.Page * state.PageSize,
+            take: state.PageSize,
+            search: _searchString);
+
+        return new TableData<KurzyPEDto>
+            {
+                TotalItems = result.TotalCount,
+                Items = result.Items
+            };
+    }
+
+
+
 }
