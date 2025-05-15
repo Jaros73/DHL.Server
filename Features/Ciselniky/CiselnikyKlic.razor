@@ -2,9 +2,11 @@
 @using DHL.Server.Features.Ciselniky.Models
 @using DHL.Server.Features.Ciselniky.Components
 @using DHL.Server.Features.Ciselniky.Interfaces
+@using MudBlazor
 @inject IKlicService CiselnikyService
 @inject IDialogService DialogService
-@using MudBlazor
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 <MudPaper Class="p-4">
     <MudText Typo="Typo.h5" Class="mb-2">Seznam Klíčů</MudText>
@@ -56,7 +58,6 @@
 
     private async Task OpenEditDialog(KlicDto original)
     {
-        // Vytvoříme kopii, aby se dialog nepropojoval přímo do seznamu
         var dto = new KlicDto
             {
                 Id = original.Id,
@@ -72,9 +73,7 @@
             {
                 CloseButton = true,
                 MaxWidth = MaxWidth.Small,
-                FullWidth = true,
-                NoHeader = false,
-                Position = DialogPosition.Center
+                FullWidth = true
             };
 
         var dialogRef = await DialogService.ShowAsync<KlicDialog>(
@@ -84,23 +83,31 @@
 
         if (result != null && !result.Canceled && result.Data is KlicDto updated)
         {
-            var existing = _keys.FirstOrDefault(k => k.Id == updated.Id);
-            if (existing is not null)
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userName = authState.User.Identity?.Name ?? "systemus";
+
+            updated.CreatedBy = string.IsNullOrWhiteSpace(updated.CreatedBy) ? userName : updated.CreatedBy;
+
+            KlicDto ulozeny;
+
+            if (updated.Id == 0)
             {
-                existing.Name = updated.Name;
-                existing.IsActive = updated.IsActive;
-                existing.CreatedAt = updated.CreatedAt;
-                existing.CreatedBy = updated.CreatedBy;
-                existing.Updated = updated.Updated;
+                ulozeny = await CiselnikyService.CreateAsync(updated);
+                _keys.Add(ulozeny);
             }
             else
             {
-                _keys.Add(updated);
+                ulozeny = await CiselnikyService.UpdateAsync(updated.Id, updated) ?? updated;
+                var index = _keys.FindIndex(k => k.Id == ulozeny.Id);
+                if (index >= 0)
+                    _keys[index] = ulozeny;
             }
 
+            _keys = _keys.OrderBy(k => k.Name).ToList();
             StateHasChanged();
         }
     }
+
 
     private async Task CreateKey()
     {

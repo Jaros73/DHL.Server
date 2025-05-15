@@ -1,4 +1,4 @@
-namespace DHL.Server.Models.DTO
+namespace DHL.Server.Features.Ciselniky.Models
 {
     /// <summary>
     /// DTO pro Zastavka.

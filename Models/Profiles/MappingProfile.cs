@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using DHL.Server.Features.Ciselniky.Models;
+using DHL.Server.Features.Dispatching.Models;
 using DHL.Server.Models.DTO;
 using DHL.Server.Models.Entities;
 
@@ -12,9 +13,12 @@ namespace DHL.Server.Models.Profiles
     {
         public MappingProfile()
         {
-            CreateMap<LocationEntity, Location>();
+            CreateMap<LocationEntity, LocationDto>();
             CreateMap<DispatchTypeEntity, DispatchType>();
             CreateMap<DispatchKeyEntity, DispatchKey>();
+            CreateMap<DispatchModelEntity, DispatchModelDto>().ReverseMap();
+            CreateMap<DispatchKey, DispatchKeyDto>().ReverseMap();
+            CreateMap<DispatchType, DispatchTypeDto>().ReverseMap();
             CreateMap<KurzEntity, KurzDto>().ReverseMap();
             CreateMap<MimKurzEntity, MimKurzDto>().ReverseMap();
             CreateMap<VykonStrojEntity, VykonStrojDto>().ReverseMap();
@@ -29,6 +33,11 @@ namespace DHL.Server.Models.Profiles
             CreateMap<VozidloEntity, VozidloDto>().ReverseMap();
             CreateMap<PripojVozidloEntity, PripojVozidloDto>().ReverseMap();
             CreateMap<KlicEntity, KlicDto>().ReverseMap();
+            CreateMap<LocationEntity, LocationDto>();
+            CreateMap<LocationEntity, Location>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
+
         }
     }
 }

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DHL.Server.Features.Dispatching.Services;
-using DHL.Server.Models.DTO;
 using DHL.Server.Models.Entities;
 using DHL.Server.Data;
 using DHL.Server.Features.Dispatching.Interfaces;
+using DHL.Server.Features.Dispatching.Models;
 
 
 

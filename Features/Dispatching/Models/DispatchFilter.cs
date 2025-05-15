@@ -1,4 +1,4 @@
-﻿namespace DHL.Server.Models.DTO
+﻿namespace DHL.Server.Features.Dispatching.Models
 {
     /// <summary>
     /// Model pro filtrování dispečerských záznamů podle časového rozmezí.

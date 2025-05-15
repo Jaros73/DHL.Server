@@ -1,6 +1,105 @@
-﻿<MudText Typo="Typo.body1">TODO: Tabulka Klíčů</MudText>
-<h3>CiselnikyZpozdeni</h3>
+﻿@page "/ciselniky-zpozdeni"
+@using DHL.Server.Features.Ciselniky.Models
+@using DHL.Server.Features.Ciselniky.Interfaces
+@using MudBlazor
+@inject IZpozdeniKurzuService ZpozdeniService
+@inject IDialogService DialogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5" Class="mb-2">Důvody zpoždění kurzů</MudText>
+
+    <div class="mb-2">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateItem" StartIcon="@Icons.Material.Filled.Add">
+            Nový důvod zpoždění
+        </MudButton>
+    </div>
+
+    <MudTable Items="_items" Hover="true" Dense="true" Bordered="true">
+        <HeaderContent>
+            <MudTh>Název důvodu</MudTh>
+            <MudTh>Stav</MudTh>
+            <MudTh>Založeno</MudTh>
+            <MudTh>Akce</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Duvod</MudTd>
+            <MudTd>
+                <MudChip T="string"
+                         Color="@(context.IsActive ? Color.Success : Color.Default)"
+                         Variant="Variant.Filled"
+                         Size="Size.Small">
+                    @(context.IsActive ? "Aktivní" : "Neaktivní")
+                </MudChip>
+            </MudTd>
+            <MudTd>@context.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditItem(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteItem(context.Id)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
 
 @code {
+    private List<ZpozdeniKurzuDto> _items = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        _items = await ZpozdeniService.GetAllAsync();
+    }
+
+    private async Task CreateItem()
+    {
+        await OpenEditDialog(new ZpozdeniKurzuDto());
+    }
+
+    private async Task EditItem(ZpozdeniKurzuDto item)
+    {
+        await OpenEditDialog(item);
+    }
+
+    private async Task OpenEditDialog(ZpozdeniKurzuDto original)
+    {
+        var parameters = new DialogParameters { ["Model"] = original };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<ZpozdeniKurzuDialog>(original.Id == 0 ? "Nový důvod" : "Úprava důvodu", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is ZpozdeniKurzuDto updated)
+        {
+            ZpozdeniKurzuDto ulozeny;
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userName = authState.User.Identity?.Name ?? "system";
+
+            updated.CreatedBy = userName;
+
+            if (updated.Id == 0)
+            {
+                ulozeny = await ZpozdeniService.CreateAsync(updated);
+                _items.Add(ulozeny);
+            }
+            else
+            {
+                ulozeny = await ZpozdeniService.UpdateAsync(updated.Id, updated) ?? updated;
+                var index = _items.FindIndex(x => x.Id == ulozeny.Id);
+                if (index >= 0)
+                    _items[index] = ulozeny;
+            }
+
+            _items = await ZpozdeniService.GetAllAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteItem(int id)
+    {
+        var confirmed = await DialogService.ShowMessageBox("Potvrzení", "Opravdu chcete smazat záznam?", "Ano", "Ne");
+        if (confirmed == true)
+        {
+            await ZpozdeniService.DeleteAsync(id);
+            _items = await ZpozdeniService.GetAllAsync();
+        }
+    }
 }

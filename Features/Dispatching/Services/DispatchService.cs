@@ -1,21 +1,24 @@
 ﻿using AutoMapper;
 using DHL.Server.Data;
 using DHL.Server.Models.Entities;
-using DHL.Server.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 using DHL.Server.Features.Dispatching.Interfaces;
+using DHL.Server.Features.Dispatching.Models;
+using DHL.Server.Models.DTO;
 
 namespace DHL.Server.Features.Dispatching.Services
 {
     public class DispatchService : IDispatchService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper; 
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public DispatchService(ApplicationDbContext context, IMapper mapper) 
+        public DispatchService(ApplicationDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
         }
 
         public async Task CreateDispatchAsync(DispatchModelEntity newDispatch)
@@ -81,6 +84,43 @@ namespace DHL.Server.Features.Dispatching.Services
         public async Task<List<DispatchModelEntity>> GetDispatchesAsync(CancellationToken cancellationToken = default)
         {
             return await _context.DispatchModels.ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<DispatchModelDto>> GetAllDispatchesDtoAsync()
+        {
+            var entities = await _context.DispatchModels.ToListAsync();
+            return _mapper.Map<List<DispatchModelDto>>(entities);
+        }
+
+        public async Task<DispatchModelDto?> GetDispatchDtoByIdAsync(int id)
+        {
+            var entity = await _context.DispatchModels.FirstOrDefaultAsync(d => d.Id == id);
+            return entity == null ? null : _mapper.Map<DispatchModelDto>(entity);
+        }
+
+
+        public async Task<DispatchModelDto?> UpdateDispatchDtoAsync(int id, DispatchModelDto dto)
+        {
+            var entity = await _context.DispatchModels.FindAsync(id);
+            if (entity == null) return null;
+
+            _mapper.Map(dto, entity);
+            entity.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return _mapper.Map<DispatchModelDto>(entity);
+        }
+
+        public async Task<DispatchModelDto> CreateDispatchDtoAsync(DispatchModelDto dto)
+        {
+            var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "system";
+            var entity = _mapper.Map<DispatchModelEntity>(dto);
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedBy = userName;
+
+            _context.DispatchModels.Add(entity);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<DispatchModelDto>(entity);
         }
 
     }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DHL.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250509085737_DHLInitialCreate")]
+    [Migration("20250515181951_DHLInitialCreate")]
     partial class DHLInitialCreate
     {
         /// <inheritdoc />

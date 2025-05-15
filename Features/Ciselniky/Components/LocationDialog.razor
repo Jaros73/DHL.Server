@@ -1,0 +1,68 @@
+﻿@using DHL.Server.Features.Ciselniky.Models
+@using DHL.Server.Features.Ciselniky.Interfaces
+@inject ILocationService LocationService
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField Label="Název lokace"
+                      @bind-Value="_model.Name"
+                      Required="true"
+                      Class="mt-2" />
+
+        <MudTextField Label="Typ pošty"
+                      @bind-Value="_model.PostOfficeType"
+                      Required="true"
+                      Class="mt-2" />
+
+        <MudNumericField T="int"
+                         Label="PSČ"
+                         @bind-Value="_model.Psc"
+                         Required="true"
+                         Class="mt-2" />
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary" Variant="Variant.Text">Zrušit</MudButton>
+        <MudButton OnClick="Save" Color="Color.Primary">Uložit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public LocationDto Model { get; set; } = new();
+
+    private LocationDto _model = new();
+
+    protected override void OnInitialized()
+    {
+        _model = new LocationDto
+            {
+                Id = Model.Id,
+                Name = Model.Name,
+                PostOfficeType = Model.PostOfficeType,
+                Psc = Model.Psc
+            };
+    }
+
+    private async Task Save()
+    {
+        LocationDto ulozeny;
+
+        if (_model.Id == 0)
+        {
+            ulozeny = await LocationService.CreateAsync(_model);
+        }
+        else
+        {
+            ulozeny = await LocationService.UpdateAsync(_model.Id, _model) ?? _model;
+        }
+
+        MudDialog.Close(DialogResult.Ok(ulozeny));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

@@ -11,20 +11,24 @@ namespace DHL.Server.Authentication
         public FakeAuthHandler(
             IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger,
-            UrlEncoder encoder,
-            ISystemClock clock)
-            : base(options, logger, encoder, clock) { }
+            UrlEncoder encoder)
+            : base(options, logger, encoder)
+        {
+        }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            var identity = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Name, "testuser"),
-                new Claim(ClaimTypes.Role, "admin")
-            }, "Fake");
+            var identity = new ClaimsIdentity(
+                authenticationType: "Fake",
+                nameType: ClaimTypes.Name,
+                roleType: ClaimTypes.Role
+            );
+
+            identity.AddClaim(new Claim(ClaimTypes.Name, "testuser"));
+            identity.AddClaim(new Claim(ClaimTypes.Role, "admin"));
 
             var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, "Fake");
+            var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }

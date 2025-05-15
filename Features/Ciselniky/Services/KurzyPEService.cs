@@ -29,62 +29,25 @@ namespace DHL.Server.Features.Ciselniky.Services
         {
             return await _context.KurzyPEs
                 .OrderBy(k => k.NazevKurzu)
-                .Select(k => new KurzyPEDto
-                {
-                    Id = k.Id,
-                    AP = k.AP,
-                    NazevKurzu = k.NazevKurzu,
-                    TC = k.TC,
-                    PSCzastavky = k.PSCzastavky,
-                    Zastavka = k.Zastavka,
-                    Prijezd = k.Prijezd,
-                    Odjezd = k.Odjezd,
-                    DatumZ = k.DatumZ,
-                    DatumU = k.DatumU
-                })
+                .ProjectTo<KurzyPEDto>(_config)
                 .ToListAsync();
         }
 
         public async Task<KurzyPEDto?> GetByIdAsync(int id)
         {
-            var kurz = await _context.KurzyPEs.FindAsync(id);
-            if (kurz == null) return null;
-
-            return new KurzyPEDto
-            {
-                Id = kurz.Id,
-                AP = kurz.AP,
-                NazevKurzu = kurz.NazevKurzu,
-                TC = kurz.TC,
-                PSCzastavky = kurz.PSCzastavky,
-                Zastavka = kurz.Zastavka,
-                Prijezd = kurz.Prijezd,
-                Odjezd = kurz.Odjezd,
-                DatumZ = kurz.DatumZ,
-                DatumU = kurz.DatumU
-            };
+            return await _context.KurzyPEs
+                            .Where(k => k.Id == id)
+                            .ProjectTo<KurzyPEDto>(_config)
+                            .FirstOrDefaultAsync();
         }
 
         public async Task<KurzyPEDto> CreateAsync(KurzyPEDto dto)
         {
-            var entity = new KurzyPEEntity
-            {
-                AP = dto.AP,
-                NazevKurzu = dto.NazevKurzu,
-                TC = dto.TC,
-                PSCzastavky = dto.PSCzastavky,
-                Zastavka = dto.Zastavka,
-                Prijezd = dto.Prijezd,
-                Odjezd = dto.Odjezd,
-                DatumZ = dto.DatumZ,
-                DatumU = dto.DatumU
-            };
-
+            var entity = _mapper.Map<KurzyPEEntity>(dto);
             _context.KurzyPEs.Add(entity);
             await _context.SaveChangesAsync();
 
-            dto.Id = entity.Id;
-            return dto;
+            return _mapper.Map<KurzyPEDto>(entity);
         }
 
         public async Task<KurzyPEDto?> UpdateAsync(int id, KurzyPEDto dto)
@@ -92,18 +55,10 @@ namespace DHL.Server.Features.Ciselniky.Services
             var entity = await _context.KurzyPEs.FindAsync(id);
             if (entity == null) return null;
 
-            entity.AP = dto.AP;
-            entity.NazevKurzu = dto.NazevKurzu;
-            entity.TC = dto.TC;
-            entity.PSCzastavky = dto.PSCzastavky;
-            entity.Zastavka = dto.Zastavka;
-            entity.Prijezd = dto.Prijezd;
-            entity.Odjezd = dto.Odjezd;
-            entity.DatumZ = dto.DatumZ;
-            entity.DatumU = dto.DatumU;
-
+            _mapper.Map(dto, entity);
             await _context.SaveChangesAsync();
-            return dto;
+
+            return _mapper.Map<KurzyPEDto>(entity);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -129,26 +84,14 @@ namespace DHL.Server.Features.Ciselniky.Services
             }
 
             var total = await query.CountAsync();
-            var data = await query
+            var items = await query
                 .OrderBy(k => k.AP)
                 .Skip(skip)
                 .Take(take)
-                .Select(k => new KurzyPEDto
-                {
-                    Id = k.Id,
-                    AP = k.AP,
-                    NazevKurzu = k.NazevKurzu,
-                    TC = k.TC,
-                    Zastavka = k.Zastavka,
-                    PSCzastavky = k.PSCzastavky,
-                    Prijezd = k.Prijezd,
-                    Odjezd = k.Odjezd
-                })
+                .ProjectTo<KurzyPEDto>(_config)
                 .ToListAsync();
 
-            return (data, total);
+            return (items, total);
         }
-
-
     }
 }

@@ -32,6 +32,12 @@ namespace DHL.Server.Data
                 await context.SaveChangesAsync();
             }
 
+            if (!await context.Zastavkas.AnyAsync())
+            {
+                var zastavkas = await LoadZastavkasAsync();
+                await context.Zastavkas.AddRangeAsync(zastavkas);
+                await context.SaveChangesAsync();
+            }
         }
 
         private static async Task<List<LocationEntity>> LoadLocationsAsync()
@@ -125,5 +131,29 @@ namespace DHL.Server.Data
             return result;
         }
 
+        private static async Task<List<ZastavkaEntity>> LoadZastavkasAsync()
+        {
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Seed", "Zastavka.csv");
+            var lines = await File.ReadAllLinesAsync(filePath);
+            var result = new List<ZastavkaEntity>();
+
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.Trim() == ";;")
+                    continue;
+
+                var parts = line.Split(';');
+
+                result.Add(new ZastavkaEntity
+                {
+                    Name = parts[0],
+                    IsActive = true,
+                    CreatedAt = DateTime.Parse("01.05.2025"),
+                    CreatedBy = "Režňák Roman"
+                });
+            }
+
+            return result;
+        }
     }
 }

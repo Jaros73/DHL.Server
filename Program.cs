@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using DHL.Server.Features.Ciselniky.Interfaces;
 using DHL.Server.Features.Ciselniky.Services;
+using DHL.Server.Models.Entities;
 
 Environment.SetEnvironmentVariable("DOTNET_WATCH", "false");
 
@@ -80,6 +81,12 @@ builder.Services.AddScoped<IKlicService, CiselnikyService>();
 builder.Services.AddScoped<IKurzyPEService, KurzyPEService>();
 builder.Services.AddScoped<KurzyPEImportService>();
 builder.Services.AddScoped<IPrepravceService, PrepravceService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IZpozdeniKurzuService, ZpozdeniKurzuService>();
+builder.Services.AddScoped<IPripojVozidloService, PripojVozidloService>();
+builder.Services.AddScoped<IVozidloService, VozidloService>();
+builder.Services.AddScoped<IZastavkaService, ZastavkaService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
 
 
 builder.Services.AddSingleton<CssMinifierService>();
@@ -117,6 +124,7 @@ var webSocketOptions = new WebSocketOptions
 };
 
 app.UseWebSockets(webSocketOptions);
+
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

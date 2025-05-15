@@ -5,6 +5,8 @@ using DHL.Server.Features.Ciselniky.Models;
 using DHL.Server.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace DHL.Server.Features.Ciselniky.Services
 {
@@ -12,11 +14,14 @@ namespace DHL.Server.Features.Ciselniky.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PrepravceService(ApplicationDbContext context, IMapper mapper)
+
+        public PrepravceService(ApplicationDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<PrepravceDto>> GetAllAsync()
@@ -28,46 +33,35 @@ namespace DHL.Server.Features.Ciselniky.Services
         public async Task<PrepravceDto?> GetByIdAsync(int id)
         {
             var entity = await _context.Prepravces.FindAsync(id);
-            if (entity == null) return null;
-
-            return new PrepravceDto
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                IsActive = entity.IsActive,
-                CreatedAt = entity.CreatedAt,
-                CreatedBy = entity.CreatedBy
-            };
+            return entity is null ? null : _mapper.Map<PrepravceDto?>(entity);
         }
 
         public async Task<PrepravceDto> CreateAsync(PrepravceDto dto)
         {
-            var entity = new PrepravceEntity
-            {
-                Name = dto.Name,
-                IsActive = dto.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = string.IsNullOrWhiteSpace(dto.CreatedBy) ? "system" : dto.CreatedBy
-            };
+            var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "system";
+            var entity = _mapper.Map<PrepravceEntity>(dto);
+            entity.Name = dto.Name;
+            entity.IsActive = dto.IsActive;
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedBy = string.IsNullOrWhiteSpace(dto.CreatedBy) ? userName : dto.CreatedBy;
 
             _context.Prepravces.Add(entity);
             await _context.SaveChangesAsync();
-
-            dto.Id = entity.Id;
-            dto.CreatedAt = entity.CreatedAt;
-            return dto;
+            return _mapper.Map<PrepravceDto>(entity);
         }
 
         public async Task<PrepravceDto?> UpdateAsync(int id, PrepravceDto dto)
         {
             var entity = await _context.Prepravces.FindAsync(id);
-            if (entity == null) return null;
+            if (entity is null)
+                return null;
 
+            _mapper.Map(dto, entity);
             entity.Name = dto.Name;
             entity.IsActive = dto.IsActive;
-            await _context.SaveChangesAsync();
 
-            return dto;
+            await _context.SaveChangesAsync();
+            return _mapper.Map<PrepravceDto?>(entity);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -78,6 +72,7 @@ namespace DHL.Server.Features.Ciselniky.Services
             _context.Prepravces.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
+
         }
     }
 }

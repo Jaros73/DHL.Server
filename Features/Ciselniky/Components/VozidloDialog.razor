@@ -1,10 +1,14 @@
-﻿@inject AuthenticationStateProvider AuthenticationStateProvider
-@using DHL.Server.Features.Ciselniky.Models
+﻿@using DHL.Server.Features.Ciselniky.Models
+@using DHL.Server.Features.Ciselniky.Interfaces
+@inject IVozidloService VozidloService
 @using MudBlazor
 
 <MudDialog>
     <DialogContent>
-        <MudTextField Label="Název" @bind-Value="_model.Name" Required="true" Class="mt-2" />
+        <MudTextField Label="RZ vozidla"
+                      @bind-Value="_model.RZ"
+                      Required="true"
+                      Class="mt-2" />
 
         @if (_initialized)
         {
@@ -20,7 +24,7 @@
 
         @if (_model.Id != 0)
         {
-            <MudText Typo="Typo.caption" Class="mt-4 text-secondary">
+            <MudText Typo="Typo.caption" Class="mt-3 text-secondary">
                 Založeno: @_model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") | Autor: @_model.CreatedBy
             </MudText>
         }
@@ -34,33 +38,32 @@
 
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public KlicDto Model { get; set; } = new();
+    [Parameter] public VozidloDto Model { get; set; } = new();
 
-    private KlicDto _model = new();
+    private VozidloDto _model = new();
     private bool _initialized = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var userName = authState.User.Identity?.Name ?? "system";
-
-        _model = new KlicDto
+        _model = new VozidloDto
             {
                 Id = Model.Id,
-                Name = Model.Name,
+                RZ = Model.RZ,
                 IsActive = Model.IsActive,
                 CreatedAt = Model.Id == 0 || Model.CreatedAt == default ? DateTime.UtcNow : Model.CreatedAt,
-                CreatedBy = string.IsNullOrWhiteSpace(Model.CreatedBy) ? userName : Model.CreatedBy,
-                Updated = DateTime.UtcNow
+                CreatedBy = string.IsNullOrWhiteSpace(Model.CreatedBy) ? "system" : Model.CreatedBy
             };
 
         _initialized = true;
     }
 
-    private void Save()
+    private async Task Save()
     {
-        _model.Updated = DateTime.UtcNow;
-        MudDialog.Close(DialogResult.Ok(_model));
+        var result = _model.Id == 0
+            ? await VozidloService.CreateAsync(_model)
+            : await VozidloService.UpdateAsync(_model.Id, _model) ?? _model;
+
+        MudDialog.Close(DialogResult.Ok(result));
     }
 
     private void Cancel()
@@ -71,8 +74,12 @@
     private void OnCheckboxChanged(ChangeEventArgs e)
     {
         if (bool.TryParse(e.Value?.ToString(), out var parsed))
+        {
             _model.IsActive = parsed;
+        }
         else
+        {
             _model.IsActive = e.Value?.ToString()?.ToLower() == "on";
+        }
     }
 }

@@ -11,11 +11,13 @@ namespace DHL.Server.Features.Ciselniky.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CiselnikyService(ApplicationDbContext context, IMapper mapper)
+        public CiselnikyService(ApplicationDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<KlicDto>> GetAllAsync()
@@ -32,8 +34,11 @@ namespace DHL.Server.Features.Ciselniky.Services
 
         public async Task<KlicDto> CreateAsync(KlicDto dto)
         {
+            var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "system";
+
             var entity = _mapper.Map<KlicEntity>(dto);
             entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedBy = string.IsNullOrWhiteSpace(dto.CreatedBy) ? userName : dto.CreatedBy;
             entity.Updated = DateTime.UtcNow;
 
             _context.Klics.Add(entity);
@@ -43,8 +48,6 @@ namespace DHL.Server.Features.Ciselniky.Services
 
         public async Task<KlicDto?> UpdateAsync(int id, KlicDto dto)
         {
-            Console.WriteLine($"Update received IsActive = {dto.IsActive}");
-
             var entity = await _context.Klics.FindAsync(id);
             if (entity is null)
                 return null;
@@ -55,7 +58,6 @@ namespace DHL.Server.Features.Ciselniky.Services
             await _context.SaveChangesAsync();
             return _mapper.Map<KlicDto>(entity);
         }
-
 
         public async Task<bool> DeleteAsync(int id)
         {

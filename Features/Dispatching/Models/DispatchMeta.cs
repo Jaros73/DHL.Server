@@ -1,4 +1,4 @@
-﻿namespace DHL.Server.Models.DTO
+﻿namespace DHL.Server.Features.Dispatching.Models
 {
     /// <summary>
     /// Model obsahující metadata pro dispečerské záznamy.
@@ -29,7 +29,7 @@
         /// <summary>
         /// Identifikátor lokace.
         /// </summary>
-        public string Id { get; set; } = string.Empty;
+        public int Id { get; set; }
 
         /// <summary>
         /// Název lokace.

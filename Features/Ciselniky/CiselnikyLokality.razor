@@ -1,0 +1,89 @@
+﻿@page "/ciselniky-lokace"
+@using DHL.Server.Features.Ciselniky.Models
+@using DHL.Server.Features.Ciselniky.Interfaces
+@inject ILocationService LocationService
+@inject IDialogService DialogService
+@using MudBlazor
+
+<MudPaper Class="p-4">
+    <MudText Typo="Typo.h5" Class="mb-2">Poštovní lokace</MudText>
+
+    <div class="mb-2">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateItem" StartIcon="@Icons.Material.Filled.Add">
+            Nová lokace
+        </MudButton>
+    </div>
+
+    <MudTable Items="_items" Hover="true" Dense="true" Bordered="true">
+        <HeaderContent>
+            <MudTh>Název</MudTh>
+            <MudTh>Typ pobočky</MudTh>
+            <MudTh>PSČ</MudTh>
+            <MudTh>Akce</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.PostOfficeType</MudTd>
+            <MudTd>@context.Psc</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="() => EditItem(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => DeleteItem(context.Id)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<LocationDto> _items = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _items = await LocationService.GetAllAsync();
+    }
+
+    private async Task CreateItem()
+    {
+        await OpenEditDialog(new LocationDto());
+    }
+
+    private async Task EditItem(LocationDto item)
+    {
+        await OpenEditDialog(item);
+    }
+
+    private async Task OpenEditDialog(LocationDto original)
+    {
+        var parameters = new DialogParameters { ["Model"] = original };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<LocationDialog>(original.Id == 0 ? "Nová lokace" : "Úprava lokace", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is LocationDto updated)
+        {
+            if (updated.Id == 0)
+            {
+                var created = await LocationService.CreateAsync(updated);
+                _items.Add(created);
+            }
+            else
+            {
+                var saved = await LocationService.UpdateAsync(updated.Id, updated) ?? updated;
+                var index = _items.FindIndex(x => x.Id == saved.Id);
+                if (index >= 0) _items[index] = saved;
+            }
+
+            _items = await LocationService.GetAllAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteItem(int id)
+    {
+        var confirmed = await DialogService.ShowMessageBox("Potvrzení", "Opravdu chcete smazat tuto lokaci?", "Ano", "Ne");
+        if (confirmed == true)
+        {
+            await LocationService.DeleteAsync(id);
+            _items = await LocationService.GetAllAsync();
+        }
+    }
+}
