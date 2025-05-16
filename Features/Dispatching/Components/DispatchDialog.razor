@@ -1,0 +1,222 @@
+﻿@using DHL.Server.Features.Dispatching.Interfaces
+@using DHL.Server.Features.Dispatching.Models
+@using DHL.Server.Features.Ciselniky.Interfaces
+@using DHL.Server.Features.Ciselniky.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using AutoMapper;
+@using System.Globalization;
+
+@inject IKlicService KlicService
+@inject ILocationService LocationService
+@inject IDialogService DialogService
+@inject IDispatchService DispatchService
+@inject AuthenticationStateProvider AuthProvider
+@inject IMapper Mapper
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+
+            <LocationSelector @bind-Value="_selectedLocation" Locations="_meta.Locations" />
+
+            <MudSelect T="DispatchType"
+                       Label="Typ události"
+                       @bind-Value="_selectedType"
+                       Required="true"
+                       Clearable="false"
+                       Dense="true"
+                       MaxHeight="300">
+                @foreach (var type in StaticDispatchTypes)
+                {
+                    <MudSelectItem Value="type">@type.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudSelect T="KlicDto"
+                       Label="Klíč události"
+                       @bind-Value="_selectedKey"
+                       Required="true"
+                       Dense="true"
+                       MaxHeight="300">
+                @if (_keyOptions != null)
+                {
+                    @foreach (var key in _keyOptions)
+                    {
+                        <MudSelectItem Value="key">@key.Name</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+
+            <!-- Datum a čas -->
+            <MudGrid GutterSize="3">
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Datum události"
+                                   Date="_selectedDate"
+                                   DateChanged="v => _selectedDate = v ?? DateTime.Today"
+                                   Required="true"
+                                   PickerVariant="PickerVariant.Inline"
+                                   DateFormat="dd.MM.yyyy" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTimePicker Label="Čas události"
+                                   Time="_selectedTime"
+                                   TimeChanged="v => _selectedTime = v ?? TimeSpan.Zero"
+                                   Required="true" />
+                </MudItem>
+            </MudGrid>
+
+            <MudTextField Label="Popis události"
+                          @bind-Value="_model.Description"
+                          Lines="3"
+                          FullWidth="true" />
+
+            @if (IsEdit)
+            {
+                <MudText Typo="Typo.caption" Class="mt-2">
+                    Vytvořeno: @_model.CreatedAt.ToLocalTime() | Autor: @_model.CreatedBy
+                </MudText>
+                <MudText Typo="Typo.caption">
+                    Upraveno: @_model.UpdatedAt?.ToLocalTime() | Autor: @_model.CreatedByFullName
+                </MudText>
+            }
+        </MudStack>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">Zrušit</MudButton>
+        <MudButton OnClick="Save" Color="Color.Primary">Uložit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public DispatchModelDto? Dispatch { get; set; }
+
+    private DispatchModelDto _model = new();
+    private DispatchMeta _meta = new();
+
+    private Location? _selectedLocation;
+    private DispatchType? _selectedType;
+    private KlicDto? _selectedKey;
+    private IEnumerable<KlicDto>? _keyOptions;
+
+    private MudAutocomplete<Location>? _locationAutocomplete;
+    private MudAutocomplete<DispatchType>? _typeAutocomplete;
+    private MudAutocomplete<KlicDto>? _keyAutocomplete;
+
+    private DateTime _selectedDate = DateTime.Today;
+    private TimeSpan _selectedTime = DateTime.Now.TimeOfDay;
+
+    private bool IsEdit => Dispatch != null && Dispatch.Id > 0;
+
+    private static readonly List<DispatchType> StaticDispatchTypes = new()
+    {
+        new DispatchType { Id = 1, Name = "Nařízená sledování" },
+        new DispatchType { Id = 2, Name = "Nepravidelnosti HPS" },
+        new DispatchType { Id = 3, Name = "Nepravidelnosti ObPS" },
+        new DispatchType { Id = 4, Name = "Nepravidelnosti ÚPS" },
+        new DispatchType { Id = 5, Name = "Ostatní" }
+    };
+
+    private readonly CultureInfo _czCulture = new("cs-CZ");
+
+    protected override async Task OnInitializedAsync()
+    {
+        _meta = await DispatchService.GetMetadataAsync();
+        _keyOptions = await KlicService.GetAllAsync();
+
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        var userName = auth.User.Identity?.Name ?? "system";
+
+        if (Dispatch != null)
+        {
+            _model = new DispatchModelDto
+                {
+                    Id = Dispatch.Id,
+                    LocationId = Dispatch.LocationId,
+                    LocationName = Dispatch.LocationName,
+                    TypeEnumId = Dispatch.TypeEnumId,
+                    TypeEnumName = Dispatch.TypeEnumName,
+                    KeyEnumId = Dispatch.KeyEnumId,
+                    KeyEnumName = Dispatch.KeyEnumName,
+                    UserTime = Dispatch.UserTime,
+                    Description = Dispatch.Description,
+                    CreatedAt = Dispatch.CreatedAt,
+                    CreatedBy = Dispatch.CreatedBy,
+                    CreatedByFullName = Dispatch.CreatedByFullName,
+                    UpdatedAt = Dispatch.UpdatedAt
+                };
+
+            _selectedDate = _model.UserTime.Date;
+            _selectedTime = _model.UserTime.TimeOfDay;
+            _selectedLocation = _meta.Locations.FirstOrDefault(l => l.Id == _model.LocationId);
+            _selectedType = StaticDispatchTypes.FirstOrDefault(t => t.Id == _model.TypeEnumId);
+            _selectedKey = _keyOptions.FirstOrDefault(k => k.Id == _model.KeyEnumId);
+        }
+        else
+        {
+            _model.CreatedBy = userName;
+            _model.CreatedByFullName = userName;
+            _model.CreatedAt = DateTime.UtcNow;
+        }
+    }
+
+
+    private Task<IEnumerable<Location>> SearchLocations(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 4)
+            return Task.FromResult(Enumerable.Empty<Location>());
+
+        var result = _meta.Locations
+            .Where(l => l.Name.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Take(20); 
+
+        return Task.FromResult(result);
+    }
+
+
+    private Task<IEnumerable<DispatchType>> SearchTypes(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return Task.FromResult(StaticDispatchTypes.AsEnumerable());
+        var result = StaticDispatchTypes.Where(t => t.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(result);
+    }
+
+    private async Task<IEnumerable<KlicDto>> SearchKeys(string value, CancellationToken token)
+    {
+        var activeKeys = await KlicService.GetAllAsync(token);
+        if (string.IsNullOrWhiteSpace(value)) return activeKeys;
+        return activeKeys.Where(k => k.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task Save()
+    {
+        if (_selectedLocation == null || _selectedType == null || _selectedKey == null)
+            return;
+
+        _model.LocationId = _selectedLocation.Id;
+        _model.LocationName = _selectedLocation.Name;
+        _model.TypeEnumId = _selectedType.Id;
+        _model.TypeEnumName = _selectedType.Name;
+        _model.KeyEnumId = _selectedKey.Id;
+        _model.KeyEnumName = _selectedKey.Name;
+        _model.UserTime = _selectedDate.Date + _selectedTime;
+
+        if (IsEdit)
+        {
+            _model.UpdatedAt = DateTime.UtcNow;
+            _model.CreatedByFullName = _model.CreatedBy ?? "system";
+            var updated = await DispatchService.UpdateDispatchDtoAsync(_model.Id, _model);
+            MudDialog.Close(DialogResult.Ok(updated));
+        }
+        else
+        {
+            var created = await DispatchService.CreateDispatchDtoAsync(_model);
+            MudDialog.Close(DialogResult.Ok(created));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

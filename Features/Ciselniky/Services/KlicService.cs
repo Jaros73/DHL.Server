@@ -20,11 +20,11 @@ namespace DHL.Server.Features.Ciselniky.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<List<KlicDto>> GetAllAsync()
+        public Task<List<KlicDto>> GetAllAsync()
         {
-            var entities = await _context.Klics.OrderBy(k => k.Name).ToListAsync();
-            return _mapper.Map<List<KlicDto>>(entities);
+            return GetAllAsync(CancellationToken.None);
         }
+
 
         public async Task<KlicDto?> GetByIdAsync(int id)
         {
@@ -69,5 +69,19 @@ namespace DHL.Server.Features.Ciselniky.Services
             await _context.SaveChangesAsync();
             return true;
         }
+        public Task<List<KlicDto>> GetAll()
+        {
+            return GetAllAsync();
+        }
+        public async Task<List<KlicDto>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            var entities = await _context.Klics
+                .Where(k => k.IsActive)
+                .OrderBy(k => k.Name)
+                .ToListAsync(cancellationToken);
+
+            return _mapper.Map<List<KlicDto>>(entities);
+        }
+
     }
 }

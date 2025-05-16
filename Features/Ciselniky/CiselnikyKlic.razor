@@ -103,7 +103,8 @@
                     _keys[index] = ulozeny;
             }
 
-            _keys = _keys.OrderBy(k => k.Name).ToList();
+           // _keys = _keys.OrderBy(k => k.Name).ToList();
+            _keys = await CiselnikyService.GetAllAsync();
             StateHasChanged();
         }
     }

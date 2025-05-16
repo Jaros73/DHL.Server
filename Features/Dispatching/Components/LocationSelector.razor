@@ -1,0 +1,92 @@
+﻿@using DHL.Server.Features.Dispatching.Models
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
+
+<MudTextField Label="TC"
+              Value="_searchText"
+              ValueChanged="@(EventCallback.Factory.Create<string>(this, OnInputChanged))"
+              ValueExpression="() => _searchText"
+              Placeholder="Zadej"
+              Immediate="true"
+              Dense="true"
+              Required="true"
+              Adornment="Adornment.End"
+              AdornmentIcon="@Icons.Material.Filled.Search"
+              Class="w-100" />
+
+<MudPopover Open="_showResults"
+            OpenDirection="Direction.Bottom"
+            AnchorOrigin="Origin.TopLeft"
+            TransformOrigin="Origin.TopLeft"
+            DisablePortal="true"
+            Width="DropdownWidth.MatchAnchor">
+    <MudPaper Class="pa-0 ma-0">
+        @if (_filtered.Any())
+        {
+            <MudList T="Location" Dense="true">
+                @foreach (var loc in _filtered)
+                {
+                    <MudListItem T="Location"
+                                 Value="loc"
+                                 Class="cursor-pointer"
+                                 @onclick="() => SelectLocation(loc)">
+                        @loc.Name
+                    </MudListItem>
+                }
+            </MudList>
+        }
+        else if (_searchText.Length >= 3)
+        {
+            <MudText Class="pa-2">Žádné výsledky</MudText>
+        }
+    </MudPaper>
+</MudPopover>
+
+
+@code {
+    [Parameter] public Location? Value { get; set; }
+    [Parameter] public EventCallback<Location?> ValueChanged { get; set; }
+    [Parameter] public IEnumerable<Location> Locations { get; set; } = Enumerable.Empty<Location>();
+
+    private string _searchText = string.Empty;
+    private bool _showResults;
+    private List<Location> _filtered = new();
+
+    private Task OnInputChanged(string value)
+    {
+        _searchText = value;
+        _showResults = false;
+
+        if (_searchText.Length < 3)
+        {
+            _filtered.Clear();
+            return Task.CompletedTask;
+        }
+
+        _filtered = Locations
+            .Where(x => x.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
+            .Take(20)
+            .ToList();
+
+        _showResults = _filtered.Any();
+
+        return Task.CompletedTask;
+    }
+
+    private async Task SelectLocation(Location selected)
+    {
+        Value = selected;
+        _searchText = selected.Name;
+        _showResults = false;
+
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Value != null)
+        {
+            _searchText = Value.Name;
+        }
+    }
+}

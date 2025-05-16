@@ -98,7 +98,6 @@ namespace DHL.Server.Features.Dispatching.Services
             return entity == null ? null : _mapper.Map<DispatchModelDto>(entity);
         }
 
-
         public async Task<DispatchModelDto?> UpdateDispatchDtoAsync(int id, DispatchModelDto dto)
         {
             var entity = await _context.DispatchModels.FindAsync(id);
@@ -122,6 +121,5 @@ namespace DHL.Server.Features.Dispatching.Services
 
             return _mapper.Map<DispatchModelDto>(entity);
         }
-
     }
 }

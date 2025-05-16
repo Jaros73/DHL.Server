@@ -23,8 +23,11 @@ using Microsoft.AspNetCore.Builder;
 using DHL.Server.Features.Ciselniky.Interfaces;
 using DHL.Server.Features.Ciselniky.Services;
 using DHL.Server.Models.Entities;
+using System.Globalization;
 
 Environment.SetEnvironmentVariable("DOTNET_WATCH", "false");
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("cs-CZ");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("cs-CZ");
 
 var builder = WebApplication.CreateBuilder(args);
 
