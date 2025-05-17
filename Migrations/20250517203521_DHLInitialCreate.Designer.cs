@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DHL.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250515181951_DHLInitialCreate")]
+    [Migration("20250517203521_DHLInitialCreate")]
     partial class DHLInitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,58 @@ namespace DHL.Server.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("DHL.Server.Features.Kurzy.Models.KurzyDispatchEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CisloKurzu")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DatumOdjezdu")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LocationName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<TimeSpan?>("PlanovanyCasOdjezdu")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan?>("PlanovanyCasPrijezdu")
+                        .HasColumnType("time");
+
+                    b.Property<int?>("RozdilCasuOdjezdu")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RozdilCasuPrijezdu")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Sit")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("KurzyDispatch");
+                });
 
             modelBuilder.Entity("DHL.Server.Models.Entities.DispatchKeyEntity", b =>
                 {
@@ -308,10 +360,37 @@ namespace DHL.Server.Migrations
 
             modelBuilder.Entity("DHL.Server.Models.Entities.ObalEntity", b =>
                 {
-                    b.Property<string>("Value")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.HasKey("Value");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Identifier")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SourceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
 
                     b.ToTable("Obals", (string)null);
                 });

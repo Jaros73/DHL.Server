@@ -74,6 +74,29 @@ namespace DHL.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "KurzyDispatch",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LocationId = table.Column<int>(type: "int", nullable: false),
+                    LocationName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Sit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    CisloKurzu = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: false),
+                    DatumOdjezdu = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PlanovanyCasOdjezdu = table.Column<TimeSpan>(type: "time", nullable: true),
+                    RozdilCasuOdjezdu = table.Column<int>(type: "int", nullable: true),
+                    PlanovanyCasPrijezdu = table.Column<TimeSpan>(type: "time", nullable: true),
+                    RozdilCasuPrijezdu = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_KurzyDispatch", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "KurzyPEs",
                 columns: table => new
                 {
@@ -130,11 +153,18 @@ namespace DHL.Server.Migrations
                 name: "Obals",
                 columns: table => new
                 {
-                    Value = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Identifier = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SourceType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    SourceId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Obals", x => x.Value);
+                    table.PrimaryKey("PK_Obals", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -471,6 +501,9 @@ namespace DHL.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "Kurzs");
+
+            migrationBuilder.DropTable(
+                name: "KurzyDispatch");
 
             migrationBuilder.DropTable(
                 name: "KurzyPEs");

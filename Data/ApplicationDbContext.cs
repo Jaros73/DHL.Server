@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using DHL.Server.Models.Entities;
+using DHL.Server.Features.Kurzy.Models;
 
 namespace DHL.Server.Data
 {
@@ -37,7 +38,7 @@ namespace DHL.Server.Data
         public DbSet<ZatezAPEntity> ZatezAPs { get; set; }
         public DbSet<ZbytekEntity> Zbyteks { get; set; }
         public DbSet<ZpozdeniKurzuEntity> ZpozdeniKurzus { get; set; }
-
+        public DbSet<KurzyDispatchEntity> KurzyDispatch { get; set; }
 
 
         /// <summary>

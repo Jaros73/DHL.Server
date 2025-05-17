@@ -24,6 +24,10 @@ using DHL.Server.Features.Ciselniky.Interfaces;
 using DHL.Server.Features.Ciselniky.Services;
 using DHL.Server.Models.Entities;
 using System.Globalization;
+using DHL.Server.Interfaces;
+using DHL.Server.Services;
+using DHL.Server.Features.Kurzy.Interfaces;
+using DHL.Server.Features.Kurzy.Services;
 
 Environment.SetEnvironmentVariable("DOTNET_WATCH", "false");
 CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("cs-CZ");
@@ -90,6 +94,8 @@ builder.Services.AddScoped<IPripojVozidloService, PripojVozidloService>();
 builder.Services.AddScoped<IVozidloService, VozidloService>();
 builder.Services.AddScoped<IZastavkaService, ZastavkaService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IObalService, ObalService>();
+builder.Services.AddScoped<IKurzyDispatchService, KurzyDispatchService>();
 
 
 builder.Services.AddSingleton<CssMinifierService>();

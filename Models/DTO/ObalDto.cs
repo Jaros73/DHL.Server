@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace DHL.Server.Models.DTO
 {
     /// <summary>
@@ -5,8 +7,27 @@ namespace DHL.Server.Models.DTO
     /// </summary>
     public class ObalDto
     {
-        /// <summary><summary>Primární klíč obalu.</summary></summary>
-        public string Value { get; set; } = string.Empty;
+        public int Id { get; set; }
 
+        [Required]
+        [StringLength(50)]
+        public string Type { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100)]
+        public string Identifier { get; set; } = string.Empty;
+
+        [Required]
+        public int Quantity { get; set; }
+
+        [Required]
+        public DateTime CreatedAt { get; set; }
+
+        [Required]
+        [StringLength(50)]
+        public string SourceType { get; set; } = string.Empty;
+
+        [Required]
+        public int SourceId { get; set; }
     }
 }

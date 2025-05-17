@@ -1,0 +1,107 @@
+﻿@page "/kurzy"
+@using DHL.Server.Features.Kurzy.Models
+@using DHL.Server.Features.Kurzy.Interfaces
+@using DHL.Server.Interfaces
+@using DHL.Server.Models
+@using DHL.Server.Models.Entities
+@using AutoMapper;
+
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject IMapper Mapper
+@inject IKurzyDispatchService KurzyDispatchService
+
+<PageTitle>Kurzy</PageTitle>
+
+<MudPaper Class="pa-4">
+    <MudStack Spacing="2">
+        <MudText Typo="Typo.h5" Class="font-weight-bold">Kurzy</MudText>
+
+        <MudGrid>
+            <MudItem xs="12">
+                <MudStack Row Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary">
+                        + Vytvořit
+                    </MudButton>
+
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                        <MudButton Variant="Variant.Text" Color="Color.Default">Export</MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Default">Aktualizovat</MudButton>
+                        <MudTextField @bind-Value="_searchText"
+                                      Placeholder="Vyhledat..."
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      Margin="Margin.Dense"
+                                      Class="ml-4" />
+                    </MudStack>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+
+        <MudTable Items="_kurzy" Hover="true" Dense="true" Bordered="true">
+            <HeaderContent>
+                <MudTh>ID</MudTh>
+                <MudTh>TC</MudTh>
+                <MudTh>Kód kurzu</MudTh>
+                <MudTh>Datum</MudTh>
+                <MudTh>Síť</MudTh>
+                <MudTh>Odj. čas</MudTh>
+                <MudTh>min.</MudTh>
+                <MudTh>Příj. čas</MudTh>
+                <MudTh>min.</MudTh>
+                <MudTh>Akce</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="ID">@context.Id</MudTd>
+                <MudTd DataLabel="TC">@context.LocationName</MudTd>
+                <MudTd DataLabel="Kód kurzu">@context.CisloKurzu</MudTd>
+                <MudTd DataLabel="Datum">@context.DatumOdjezdu.ToString("dd.MM.yyyy")</MudTd>
+                <MudTd DataLabel="Síť">@context.Sit</MudTd>
+                <MudTd DataLabel="Odj. čas">@context.PlanovanyCasOdjezdu?.ToString("hh:mm")</MudTd>
+                <MudTd DataLabel="min.">@context.RozdilCasuOdjezdu?.ToString()</MudTd>
+                <MudTd DataLabel="Příj. čas">@context.PlanovanyCasPrijezdu?.ToString("hh:mm")</MudTd>
+                <MudTd DataLabel="min.">@context.RozdilCasuPrijezdu?.ToString()</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Color="Color.Default" Size="Size.Small" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" />
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+
+        <div class="text-center mt-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="LoadMore">Další</MudButton>
+        </div>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private List<KurzyDispatchDto> _kurzy = new();
+    private string _searchText = string.Empty;
+    private int _pageSize = 10;
+    private int _currentPage = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInitial();
+    }
+
+    private async Task LoadInitial()
+    {
+        var data = await KurzyDispatchService.GetAllAsync();
+        _kurzy = data.Take(_pageSize).ToList();
+        _currentPage = 1;
+    }
+
+    private async Task LoadMore()
+    {
+        var data = await KurzyDispatchService.GetAllAsync();
+        var nextItems = data.Skip(_pageSize * _currentPage).Take(_pageSize).ToList();
+
+        if (nextItems.Any())
+        {
+            _kurzy.AddRange(nextItems);
+            _currentPage++;
+        }
+    }
+}

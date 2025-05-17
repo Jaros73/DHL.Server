@@ -49,6 +49,7 @@
 	<ItemGroup>
 	  <Folder Include="Components\UI\" />
 	  <Folder Include="Interfaces\" />
+	  <Folder Include="Temp\" />
 	</ItemGroup>
 
 	<ItemGroup>
